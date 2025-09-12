@@ -37,6 +37,8 @@ const Headers = styled.div`
     display : flex;
     width : 100%;
     flex-direction : column;
+    position : fixed;
+    background-color : #FFFFFF;
 `
 
 const LoginForm = styled.div`
