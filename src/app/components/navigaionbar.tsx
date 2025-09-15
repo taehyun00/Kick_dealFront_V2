@@ -1,12 +1,15 @@
 import styled from "@emotion/styled"
-
+import { useRouter } from "next/navigation";
 
 const NavigationBar = () => {
+
+    const router = useRouter();
+
     return(
         <NavigationBarLayout>
             <Navitgationbars>
                 <Cateogorys>
-                <Category>전체상품</Category>
+                <Category onClick={() => {router.push("/all")}}>전체상품</Category>
                 <Category>축구화</Category>
                 <Category>풋살화</Category>
                 <Category>유니폼</Category>

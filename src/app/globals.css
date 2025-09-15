@@ -40,3 +40,12 @@ body {
     font-weight: 100;
     font-display: swap;
 }
+
+
+
+@font-face {
+    font-family: 'GMarketSans';
+    src: url('https://cdn.jsdelivr.net/gh/projectnoonnu/noonfonts_2001@1.1/GmarketSansLight.woff') format('woff');
+    font-weight: 900;
+    font-display: swap;
+}

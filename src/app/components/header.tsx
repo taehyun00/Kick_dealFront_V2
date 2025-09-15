@@ -9,7 +9,6 @@ import { useState } from "react";
 
 const Header = () => {
 
-    const [islogin,setislogin] = useState();
     return(
     <Headers>
     <HeaderLayout>
@@ -39,6 +38,8 @@ const Headers = styled.div`
     flex-direction : column;
     position : fixed;
     background-color : #FFFFFF;
+    top : 0px;
+    z-index : 1000;
 `
 
 const LoginForm = styled.div`
