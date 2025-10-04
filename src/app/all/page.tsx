@@ -3,8 +3,11 @@
 import styled from "@emotion/styled";
 import Header from "../components/header";
 import "../globals.css";
+import { useRouter } from "next/navigation";
 
 export default function ProductList() {
+
+  const router = useRouter();
 
   const products = Array(9).fill({
     id: 1,
@@ -20,7 +23,7 @@ export default function ProductList() {
       <ContentWrapper>
         <ProductGrid>
           {products.map((product, index) => (
-            <ProductCard key={index}>
+            <ProductCard key={index} onClick={() => {router.push(`${product.id}`)}}>
               <ProductImage>
                 <img src={product.image} alt={product.name} />
               </ProductImage>

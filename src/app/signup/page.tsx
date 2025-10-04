@@ -2,39 +2,16 @@
 
 import styled from "@emotion/styled";
 import Header from "../components/header";
+import SignupForm from "../components/signform";
 import "../globals.css";
-import { useRouter } from "next/navigation";
 
 export default function Main() {
-  const router = useRouter();
-
-  const handleLoginClick = () => {
-    router.push("/login");
-  };
-
   return (
     <MainLayout>
       <Header />
 
       <MainItem>
-        <LeftItem>
-          <img src="svg/main.svg" width={530} height={400} />
-        </LeftItem>
-        <RightItem>
-          <TextItem>
-            <UpperText>
-              <Uppertext>몇번 안 즐길 축구인데</Uppertext>
-              <Uppertext>가격이 부담되신다구요?</Uppertext>
-            </UpperText>
-
-            <DownText>
-              <Downtext>그럴땐 KickDeal에서 빠르게</Downtext>
-              <Downtext>중고거래 해보세요!</Downtext>   
-            </DownText>
-          </TextItem>
-
-          <LoginButton onClick={() => {handleLoginClick()}}>로그인하기</LoginButton>
-        </RightItem>
+        <SignupForm />
       </MainItem>
     </MainLayout>
   );
@@ -58,6 +35,7 @@ const MainItem = styled.div`
   padding-left : 30px;
   margin: 0 auto;
   width: 100%;
+  margin-top : 120px;
 `;
 
 const LeftItem = styled.div`

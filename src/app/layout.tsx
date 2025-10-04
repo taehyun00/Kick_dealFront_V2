@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import Blank from "./components/blank";
+import "../app/globals.css";
 
 export default function RootLayout({
   children,

@@ -3,25 +3,26 @@
 import styled from "@emotion/styled";
 import React from "react";
 import NavigationBar from "./navigaionbar";
-
-import { useState } from "react";
+import { useRouter } from "next/navigation";
 
 
 const Header = () => {
+
+    const router = useRouter();
 
     return(
     <Headers>
     <HeaderLayout>
         <HeaderItem>
         <LogoLayout>
-            <Logo src="svg/logo.svg" width={55}/>
+            <Logo src="svg/logo.svg" width={55} onClick={() => router.push('/')}/>
         </LogoLayout>
 
         <InputLayout type="text" placeholder="상품명을 입력해주세요" />
 
         <LoginForm>
-            <p>회원가입</p>
-            <p>로그인</p>
+            <p onClick={() => {router.push('/signup')}}>회원가입</p>
+            <p  onClick={() => {router.push('/login')}}>로그인</p>
         </LoginForm>
 
         </HeaderItem>
