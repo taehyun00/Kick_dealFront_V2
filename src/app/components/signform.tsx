@@ -2,6 +2,7 @@
 
 import styled from "@emotion/styled";
 import { useState, ChangeEvent } from "react";
+import axios from "axios";
 
 interface FormData {
   name: string;
@@ -53,17 +54,18 @@ export default function SignupForm({ onSubmit, onNext }: SignupFormProps) {
 
   const [isEmailSent, setIsEmailSent] = useState(false);
   const [isEmailVerified, setIsEmailVerified] = useState(false);
-  const [serverCode, setServerCode] = useState(""); // 실제 서버에서는 API 응답값
+  const [serverCode, setServerCode] = useState(""); 
 
-  // 이메일 입력 변경
+
   const handleInputChange = (field: keyof FormData, value: string): void => {
+      console.log(field, value); 
     setFormData(prev => ({
       ...prev,
       [field]: value
     }));
   };
 
-  // 약관 체크
+
   const handleAgreementChange = (field: AgreementField): void => {
     if (field === "all") {
       const newValue = !agreements.all;
@@ -84,7 +86,7 @@ export default function SignupForm({ onSubmit, onNext }: SignupFormProps) {
     }
   };
 
-  // 이메일 인증번호 전송
+
   const handleSendVerification = (): void => {
     if (!formData.email.trim()) {
       alert("이메일을 입력해주세요.");
@@ -97,14 +99,14 @@ export default function SignupForm({ onSubmit, onNext }: SignupFormProps) {
       return;
     }
 
-    // 실제로는 서버 요청 (axios.post("/api/send-code", { email }))
+
     const generatedCode = Math.floor(100000 + Math.random() * 900000).toString();
     setServerCode(generatedCode);
     setIsEmailSent(true);
     alert(`인증번호가 이메일로 발송되었습니다. (테스트 코드: ${generatedCode})`);
   };
 
-  // 인증번호 확인
+
   const handleVerifyCode = (): void => {
     if (formData.verificationCode === serverCode) {
       setIsEmailVerified(true);
@@ -144,16 +146,43 @@ export default function SignupForm({ onSubmit, onNext }: SignupFormProps) {
     return true;
   };
 
-  const handleSubmit = (): void => {
+  const handleSubmit = async (): Promise<void> => {
+    console.log("생년월일:", formData.birthDate);
+    console.log(formData.email,formData.name);
+    console.log("이름:", formData.name);
     if (!validateForm()) return;
+
+  
+
+  const payload = {
+    email: formData.email,
+    username: formData.name,
+    password: formData.password,
+  };
+
+  try {
+    const response = await axios.post("http://isedol.leegunwoo.com/users", payload, {
+      headers: {
+        "Content-Type": "application/json",
+      },
+    });
+
+    console.log("회원가입 성공:", response.data);
+    alert("회원가입이 완료되었습니다!");
 
     if (onSubmit) {
       onSubmit(formData, agreements);
-    } else {
-      console.log("회원가입 데이터:", formData, agreements);
-      alert("회원가입이 완료되었습니다!");
     }
-  };
+  } catch (error: any) {
+    console.error("회원가입 실패:", error);
+    if (error.response) {
+      alert(`회원가입 실패: ${error.response.data.message || "서버 오류"}`);
+    } else {
+      alert("회원가입 중 오류가 발생했습니다.");
+    }
+  }
+};
+
 
   return (
     <SignupContainer>
@@ -329,12 +358,18 @@ const EmailRow = styled.div`
 const VerifyButton = styled.button`
   background-color: #ff4757;
   color: white;
-  font-size: 13px;
+  font-size: 12px;
   border: none;
   border-radius: 8px;
   padding: 0 12px;
+  height: 46px; /* ✅ 추가 - input과 동일 높이 */
   cursor: pointer;
   transition: 0.2s;
+  text-align: center;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  white-space: nowrap; /* ✅ 버튼 글자 줄바꿈 방지 */
 
   &:disabled {
     background-color: #ccc;
@@ -345,6 +380,7 @@ const VerifyButton = styled.button`
     background-color: #ff2d4d;
   }
 `;
+
 
 const EmailVerifyBox = styled.div`
   display: flex;

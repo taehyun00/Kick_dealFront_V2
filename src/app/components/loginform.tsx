@@ -1,4 +1,4 @@
-"use client";
+'use client';
 
 import styled from "@emotion/styled";
 import { useState } from "react";
@@ -7,111 +7,120 @@ export default function LoginForm() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
 
-  const handleSubmit = (e : any) => {
+  const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
 
-    // 로그인 로직 (API 연동 부분)
+    if (!email.trim() || !password.trim()) {
+      alert("이메일과 비밀번호를 입력해주세요.");
+      return;
+    }
+
+    // 실제 로그인 API 연동 부분
     console.log("로그인 시도:", { email, password });
+    alert("로그인 시도 중입니다...");
   };
 
   return (
-    <FormContainer onSubmit={handleSubmit}>
+    <LoginContainer onSubmit={handleSubmit}>
       <Title>로그인</Title>
 
-      <InputBox>
-        <Label>이메일</Label>
-        <Input
-          type="email"
-          placeholder="이메일을 입력하세요"
-          value={email}
-          onChange={(e) => setEmail(e.target.value)}
-          required
-        />
-      </InputBox>
+      <FormSection>
+        <InputGroup>
+          <Label>이메일</Label>
+          <Input
+            type="email"
+            placeholder="이메일을 입력해주세요"
+            value={email}
+            onChange={(e) => setEmail(e.target.value)}
+          />
+        </InputGroup>
 
-      <InputBox>
-        <Label>비밀번호</Label>
-        <Input
-          type="password"
-          placeholder="비밀번호를 입력하세요"
-          value={password}
-          onChange={(e) => setPassword(e.target.value)}
-          required
-        />
-      </InputBox>
+        <InputGroup>
+          <Label>비밀번호</Label>
+          <Input
+            type="password"
+            placeholder="비밀번호를 입력해주세요"
+            value={password}
+            onChange={(e) => setPassword(e.target.value)}
+          />
+        </InputGroup>
+      </FormSection>
 
-      <LoginButton type="submit">로그인</LoginButton>
+      <SubmitButton type="submit">로그인</SubmitButton>
 
       <BottomText>
         계정이 없으신가요? <SignupLink href="/signup">회원가입</SignupLink>
       </BottomText>
-    </FormContainer>
+    </LoginContainer>
   );
 }
 
-const FormContainer = styled.form`
+// ---------------- 스타일 ----------------
+
+const LoginContainer = styled.form`
+  width: 100%;
+  max-width: 400px;
+  margin: 0 auto;
+  padding: 40px 20px;
+  background-color: #ffffff;
+  font-family: 'GMarketSans';
   display: flex;
   flex-direction: column;
   gap: 24px;
-  width: 380px;
-  background-color: #ffffff;
-  padding: 40px 48px;
-  border-radius: 16px;
-  box-shadow: 0 4px 20px rgba(0,0,0,0.08);
 `;
 
-const Title = styled.h2`
-  font-size: 28px;
+const Title = styled.h1`
+  font-size: 24px;
   font-weight: 700;
-  color: #2c2c2c;
-  margin-bottom: 8px;
+  color: #333333;
   text-align: center;
+  margin-bottom: 20px;
 `;
 
-const InputBox = styled.div`
+const FormSection = styled.div`
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+`;
+
+const InputGroup = styled.div`
   display: flex;
   flex-direction: column;
   gap: 8px;
 `;
 
 const Label = styled.label`
-  font-size: 15px;
-  font-weight: 500;
+  font-size: 14px;
   color: #555555;
 `;
 
 const Input = styled.input`
-  padding: 12px 14px;
-  font-size: 16px;
-  border: 1.5px solid #cccccc;
-  border-radius: 10px;
-  outline: none;
-  transition: all 0.2s ease;
+  width: 100%;
+  height: 46px;
+  padding: 0 14px;
+  border: 1px solid #ddd;
+  border-radius: 8px;
+  font-size: 14px;
 
   &:focus {
-    border-color: #ff234c;
-    box-shadow: 0 0 0 2px rgba(255,35,76,0.15);
+    border-color: #ff4757;
+    outline: none;
   }
 `;
 
-const LoginButton = styled.button`
-  border: none;
-  background-color: #ff234c;
-  padding: 14px 0;
-  border-radius: 12px;
+const SubmitButton = styled.button`
+  width: 100%;
+  height: 52px;
+  background-color: #ff4757;
   color: white;
-  font-size: 17px;
+  border: none;
+  border-radius: 8px;
+  font-size: 18px;
   font-weight: 600;
   cursor: pointer;
-  transition: all 0.2s ease;
 
   &:hover {
-    background-color: #e01e3f;
-    transform: translateY(-1px);
-  }
-
-  &:active {
-    transform: translateY(0);
+    background-color: #ff2d4d;
   }
 `;
 
@@ -122,7 +131,7 @@ const BottomText = styled.p`
 `;
 
 const SignupLink = styled.a`
-  color: #ff234c;
+  color: #ff4757;
   font-weight: 600;
   text-decoration: none;
 
