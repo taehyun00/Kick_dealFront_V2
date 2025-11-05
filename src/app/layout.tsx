@@ -3,6 +3,7 @@
 import { useState, useEffect } from 'react';
 import Blank from "./components/blank";
 import "../app/globals.css";
+import Header from "@/app/components/header";
 
 export default function RootLayout({
   children,
@@ -38,7 +39,10 @@ export default function RootLayout({
   return (
     <html lang="ko">
       <body>
-        {isMobile ? <Blank /> : children}
+        {isMobile ? <Blank /> : <div>
+          <Header />
+          {children}
+        </div>}
       </body>
     </html>
   );

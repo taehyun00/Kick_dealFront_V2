@@ -1,15 +1,12 @@
 'use client'
 
 import styled from "@emotion/styled";
-import Header from "../components/header";
 import SignupForm from "../components/signform";
 import "../globals.css";
 
 export default function Main() {
   return (
     <MainLayout>
-      <Header />
-
       <MainItem>
         <SignupForm />
       </MainItem>

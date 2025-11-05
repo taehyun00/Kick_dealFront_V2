@@ -8,8 +8,6 @@ import "../globals.css";
 export default function Main() {
   return (
     <MainLayout>
-      <Header />
-
       <MainItem>
         <LoginForm />
       </MainItem>

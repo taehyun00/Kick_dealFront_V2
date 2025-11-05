@@ -161,7 +161,7 @@ export default function SignupForm({ onSubmit, onNext }: SignupFormProps) {
   };
 
   try {
-    const response = await axios.post("http://isedol.leegunwoo.com/users", payload, {
+    const response = await axios.post("https://isedol.leegunwoo.com/users", payload, {
       headers: {
         "Content-Type": "application/json",
       },

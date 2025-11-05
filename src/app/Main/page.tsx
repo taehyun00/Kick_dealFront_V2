@@ -1,7 +1,7 @@
 'use client'
 
 import styled from "@emotion/styled";
-import Header from "../components/header";
+
 import "../globals.css";
 import { useRouter } from "next/navigation";
 
@@ -14,8 +14,6 @@ export default function Main() {
 
   return (
     <MainLayout>
-      <Header />
-
       <MainItem>
         <LeftItem>
           <img src="svg/main.svg" width={530} height={400} />
