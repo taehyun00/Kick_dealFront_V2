@@ -10,11 +10,13 @@ const NavigationBar = () => {
             <Navitgationbars>
                 <Cateogorys>
                 <Category onClick={() => {router.push("/all")}}>전체상품</Category>
-                <Category>축구화</Category>
-                <Category>풋살화</Category>
-                <Category>유니폼</Category>
-                <Category>유소년</Category>
-                <Category>기타용품</Category>
+                <Category onClick={() => {router.push("/soccershoe")}}>축구화</Category>
+                <Category onClick={() => {router.push("/footballshoe")}}>풋살화</Category>
+                <Category onClick={() => {router.push("/uniform")}}>유니폼</Category>
+                <Category onClick={() => {router.push("/ball")}}>축구공</Category>
+                <Category onClick={() => {router.push("/kids")}}>유소년</Category>
+                <Category onClick={() => {router.push("/etc")}}>기타용품</Category>
+                <Category onClick={() => {router.push("/gallkepper")}}>GK용품</Category>
                 </Cateogorys>
 
                 <Myact> 

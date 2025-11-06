@@ -78,6 +78,7 @@ const Save: React.FC = () => {
                 ['futsalShoes', '풋살화'],
                 ['uniform', '유니폼'],
                 ['ball', '축구공'],
+                ['kids','유소년'],
                 ['other', '기타용품'],
                 ['goalkeeper', 'GK용품'],
               ].map(([value, label]) => (
@@ -219,7 +220,7 @@ const CategoryLabel = styled.p`
 
 const CategoryButtons = styled.div`
   display: flex;
-  gap: 24px;
+  gap: 10px;
   flex-wrap: wrap;
 `
 
