@@ -16,7 +16,7 @@ const NavigationBar = () => {
                 <Category onClick={() => {router.push("/ball")}}>축구공</Category>
                 <Category onClick={() => {router.push("/kids")}}>유소년</Category>
                 <Category onClick={() => {router.push("/etc")}}>기타용품</Category>
-                <Category onClick={() => {router.push("/gallkepper")}}>GK용품</Category>
+                <Category onClick={() => {router.push("/goalkepper")}}>GK용품</Category>
                 </Cateogorys>
 
                 <Myact> 
