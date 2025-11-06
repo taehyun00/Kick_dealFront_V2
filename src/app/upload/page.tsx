@@ -3,6 +3,8 @@
 import React, { useState, useRef } from 'react'
 import styled from '@emotion/styled'
 
+const MAIN_COLOR = '#ff4757'
+
 interface ProductRequest {
   name: string
   description: string
@@ -19,11 +21,10 @@ const Save: React.FC = () => {
     category: '',
     imageFile: null,
   })
-
   const [preview, setPreview] = useState<string>('')
   const imgInput = useRef<HTMLInputElement | null>(null)
 
-  /** 📸 이미지 업로드 및 미리보기 */
+  /** 이미지 업로드 */
   const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0]
     if (!file) return
@@ -31,13 +32,12 @@ const Save: React.FC = () => {
     setPreview(URL.createObjectURL(file))
   }
 
-  /** 🧾 업로드 버튼 클릭 시 콘솔 출력 (API 연결 전 테스트용) */
+  /** 업로드 버튼 클릭 */
   const handleUpload = () => {
     if (!form.imageFile || !form.name || !form.price || !form.description || !form.category) {
       alert('모든 필드를 입력해주세요!')
       return
     }
-
     console.log('등록할 상품 데이터:', form)
     alert('테스트용: 상품 데이터 콘솔에 출력됨 ✅')
   }
@@ -46,85 +46,86 @@ const Save: React.FC = () => {
     <MainLayout>
       <Title>글올리기</Title>
 
-      {/* 이미지 업로드 섹션 */}
-      <ImageUploadBox>
-        <label htmlFor="input_file">
-          {preview ? (
-            <PreviewBox>
-              <img src={preview} alt="미리보기" />
-            </PreviewBox>
-          ) : (
-            <ImagePlaceholder>
-              이미지 업로드
-              <p>박스를 클릭해주세요!</p>
-            </ImagePlaceholder>
-          )}
-        </label>
-        <HiddenInput
-          id="input_file"
-          type="file"
-          accept="image/*"
-          ref={imgInput}
-          onChange={handleImageChange}
-        />
-      </ImageUploadBox>
+      <ContentWrapper>
+        {/* 왼쪽: 이미지 + 카테고리 */}
+        <LeftSection>
+          <ImageUploadBox>
+            <label htmlFor="input_file">
+              {preview ? (
+                <PreviewBox>
+                  <img src={preview} alt="미리보기" />
+                </PreviewBox>
+              ) : (
+                <ImagePlaceholder>
+                  <PlusSign>+</PlusSign>
+                </ImagePlaceholder>
+              )}
+            </label>
+            <HiddenInput
+              id="input_file"
+              type="file"
+              accept="image/*"
+              ref={imgInput}
+              onChange={handleImageChange}
+            />
+          </ImageUploadBox>
 
-      {/* 카테고리 버튼 */}
-      <CategorySection>
-        {[
-          ['soccerShoes', '축구화'],
-          ['futsalShoes', '풋살화'],
-          ['uniform', '유니폼'],
-          ['ball', '축구공'],
-          ['other', '기타용품'],
-          ['goalkeeper', 'GK용품'],
-        ].map(([value, label]) => (
-          <CategoryButton
-            key={value}
-            onClick={() => setForm((prev) => ({ ...prev, category: value }))}
-            active={form.category === value}
-          >
-            {label}
-          </CategoryButton>
-        ))}
-      </CategorySection>
+          <CategoryArea>
+            <CategoryLabel>분류</CategoryLabel>
+            <CategoryButtons>
+              {[
+                ['soccerShoes', '축구화'],
+                ['futsalShoes', '풋살화'],
+                ['uniform', '유니폼'],
+                ['ball', '축구공'],
+                ['other', '기타용품'],
+                ['goalkeeper', 'GK용품'],
+              ].map(([value, label]) => (
+                <CategoryButton
+                  key={value}
+                  onClick={() => setForm((prev) => ({ ...prev, category: value }))}
+                  active={form.category === value}
+                >
+                  {label}
+                </CategoryButton>
+              ))}
+            </CategoryButtons>
+          </CategoryArea>
+        </LeftSection>
 
-      {/* 입력 폼 */}
-      <FormSection>
-        <InputGroup>
-          <label>상품명</label>
-          <Input
-            placeholder="상품명을 입력해주세요"
-            value={form.name}
-            onChange={(e) => setForm((prev) => ({ ...prev, name: e.target.value }))}
-          />
-        </InputGroup>
+        <RightSection>
+          <InputGroup>
+            <label>상품명</label>
+            <Input
+              placeholder="상품명을 입력해주세요"
+              value={form.name}
+              onChange={(e) => setForm((prev) => ({ ...prev, name: e.target.value }))}
+            />
+          </InputGroup>
 
-        <InputGroup>
-          <label>가격</label>
-          <Input
-            type="number"
-            placeholder="가격을 입력해주세요"
-            value={form.price}
-            onChange={(e) => setForm((prev) => ({ ...prev, price: e.target.value }))}
-          />
-        </InputGroup>
+          <InputGroup>
+            <label>가격</label>
+            <Input
+              type="number"
+              placeholder="가격을 입력해주세요"
+              value={form.price}
+              onChange={(e) => setForm((prev) => ({ ...prev, price: e.target.value }))}
+            />
+          </InputGroup>
 
-        <InputGroup>
-          <label>세부사항</label>
-          <Textarea
-            placeholder="세부사항을 입력해주세요 (최대 250자)"
-            maxLength={250}
-            value={form.description}
-            onChange={(e) => setForm((prev) => ({ ...prev, description: e.target.value }))}
-          />
-        </InputGroup>
-      </FormSection>
+          <InputGroup>
+            <label>상세정보</label>
+            <Textarea
+              placeholder="상세정보를 입력해주세요"
+              maxLength={250}
+              value={form.description}
+              onChange={(e) => setForm((prev) => ({ ...prev, description: e.target.value }))}
+            />
+          </InputGroup>
 
-      {/* 등록 버튼 */}
-      <ButtonSection>
-        <SubmitButton onClick={handleUpload}>글 올리기</SubmitButton>
-      </ButtonSection>
+          <SubmitButton onClick={handleUpload}>글 올리기</SubmitButton>
+        </RightSection>
+      </ContentWrapper>
     </MainLayout>
   )
 }
@@ -137,43 +138,61 @@ const MainLayout = styled.div`
   width: 100vw;
   min-height: 100vh;
   background-color: #fff;
-  padding: 150px 20px;
+  padding: 100px 120px;
   display: flex;
   flex-direction: column;
-  gap: 30px;
+  color: #333;
 `
 
 const Title = styled.h1`
   font-size: 24px;
   font-weight: 700;
+  margin-bottom: 50px;
+  color: #444;
+  margin-top : 100px;
+`
+
+const ContentWrapper = styled.div`
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  width : 100%;
+`
+
+const LeftSection = styled.div`
+  display: flex;
+  flex-direction: column;
+  gap: 30px;
 `
 
 const ImageUploadBox = styled.div`
   width: 600px;
   height: 400px;
+  border-radius: 20px;
+  overflow: hidden;
 `
 
 const ImagePlaceholder = styled.div`
   width: 100%;
   height: 100%;
-  border: 2px dashed #999;
-  border-radius: 10px;
+  background-color: #e5e5e5;
+  border-radius: 20px;
   display: flex;
-  flex-direction: column;
   align-items: center;
   justify-content: center;
-  color: #666;
   cursor: pointer;
-  p {
-    font-size: 14px;
-    color: #aaa;
-  }
+`
+
+const PlusSign = styled.span`
+  font-size: 64px;
+  color: #fff;
+  font-weight: 200;
 `
 
 const PreviewBox = styled.div`
   width: 100%;
   height: 100%;
-  border-radius: 10px;
+  border-radius: 20px;
   overflow: hidden;
   img {
     width: 100%;
@@ -186,29 +205,43 @@ const HiddenInput = styled.input`
   display: none;
 `
 
-const CategorySection = styled.div`
+const CategoryArea = styled.div`
   display: flex;
-  gap: 10px;
+  flex-direction: column;
+  gap: 12px;
+`
+
+const CategoryLabel = styled.p`
+  font-weight: 600;
+  font-size: 16px;
+  color: #333;
+`
+
+const CategoryButtons = styled.div`
+  display: flex;
+  gap: 24px;
   flex-wrap: wrap;
 `
 
 const CategoryButton = styled.button<{ active: boolean }>`
   padding: 8px 16px;
-  border: none;
-  border-radius: 6px;
+  border-radius: 20px;
+  border: 1px solid ${({ active }) => (active ? MAIN_COLOR : '#ccc')};
+  color: ${({ active }) => (active ? '#fff' : '#555')};
+  background-color: ${({ active }) => (active ? MAIN_COLOR : '#fff')};
   cursor: pointer;
-  background-color: ${({ active }) => (active ? '#007aff' : '#ddd')};
-  color: ${({ active }) => (active ? '#fff' : '#333')};
   transition: 0.2s;
   &:hover {
-    opacity: 0.8;
+    border-color: ${MAIN_COLOR};
+    color: ${MAIN_COLOR};
   }
+  outline : none;
 `
 
-const FormSection = styled.div`
+const RightSection = styled.div`
   display: flex;
   flex-direction: column;
-  gap: 20px;
+  gap: 25px;
   width: 600px;
 `
 
@@ -222,31 +255,40 @@ const InputGroup = styled.div`
 `
 
 const Input = styled.input`
-  padding: 10px;
-  border: 1px solid #ccc;
-  border-radius: 6px;
+  padding: 12px;
+  border: 1px solid #bbb;
+  border-radius: 12px;
+  font-size: 15px;
+  outline: none;
+  &:focus {
+    border-color: ${MAIN_COLOR};
+  }
 `
 
 const Textarea = styled.textarea`
-  padding: 10px;
-  border: 1px solid #ccc;
-  border-radius: 6px;
+  padding: 12px;
+  border: 1px solid #bbb;
+  border-radius: 12px;
   resize: none;
   height: 150px;
-`
-
-const ButtonSection = styled.div`
-  margin-top: 30px;
+  font-size: 15px;
+  outline: none;
+  &:focus {
+    border-color: ${MAIN_COLOR};
+  }
 `
 
 const SubmitButton = styled.button`
-  background-color: #007aff;
+  margin-top: 10px;
+  padding: 12px 0;
+  background-color: ${MAIN_COLOR};
   color: #fff;
   border: none;
-  padding: 12px 40px;
+  border-radius: 20px;
   font-size: 16px;
-  border-radius: 8px;
+  font-weight: 600;
   cursor: pointer;
+  transition: 0.3s;
   &:hover {
     opacity: 0.9;
   }

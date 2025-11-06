@@ -46,6 +46,7 @@ const Headers = styled.div`
 const LoginForm = styled.div`
     display : flex;
     gap : 60px;
+        cursor : pointer;
 `
 
 const InputLayout = styled.input`

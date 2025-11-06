@@ -37,6 +37,7 @@ const Myact = styled.div`
 const Category = styled.p`
     font-size : 17px;
     color : #BBBBBB;
+    cursor : pointer;
 `
 
 const Cateogorys = styled.div`
