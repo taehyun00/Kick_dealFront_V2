@@ -21,7 +21,7 @@ const NavigationBar = () => {
 
                 <Myact> 
                 <Category onClick={() => {router.push("/upload")}}>글올리기</Category>
-                <Category>마이페이지</Category>   
+                <Category onClick={() => {router.push("/mypage")}}>마이페이지</Category>   
                 </Myact>
             </Navitgationbars>
        

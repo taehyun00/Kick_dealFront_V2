@@ -18,7 +18,7 @@ export default function ProductList() {
 
   return (
     <MainLayout>
-      <Header />
+
       
       <ContentWrapper>
         <ProductGrid>

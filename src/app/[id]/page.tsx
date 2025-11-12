@@ -36,7 +36,7 @@ export default function ProductDetail() {
 
   return (
     <MainLayout>
-      <Header />
+
       
       <ContentWrapper>
         <BreadcrumbNav>
