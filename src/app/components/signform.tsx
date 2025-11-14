@@ -55,6 +55,7 @@ export default function SignupForm({ onSubmit, onNext }: SignupFormProps) {
   const [isEmailSent, setIsEmailSent] = useState(false);
   const [isEmailVerified, setIsEmailVerified] = useState(false);
   const [serverCode, setServerCode] = useState(""); 
+  const [isOk,setisOk] = useState(false);
 
 
   const handleInputChange = (field: keyof FormData, value: string): void => {
@@ -87,7 +88,7 @@ export default function SignupForm({ onSubmit, onNext }: SignupFormProps) {
   };
 
 
-  const handleSendVerification = (): void => {
+  const handleSendVerification = async (): Promise<void> => {
     if (!formData.email.trim()) {
       alert("이메일을 입력해주세요.");
       return;
@@ -99,24 +100,59 @@ export default function SignupForm({ onSubmit, onNext }: SignupFormProps) {
       return;
     }
 
+    try {
+      const response = await axios.post(
+        "https://api.leegunwoo.com/verification",
+        {
+          email: formData.email
+        },
+        {
+          headers: {
+            "Content-Type": "application/json",
+          },
+        }
+      );
+      const re = response.status;
+      console.log(response)
+      if (re && re === 200) {
 
-    const generatedCode = Math.floor(100000 + Math.random() * 900000).toString();
-    setServerCode(generatedCode);
-    setIsEmailSent(true);
-    alert(`인증번호가 이메일로 발송되었습니다. (테스트 코드: ${generatedCode})`);
-  };
-
-
-  const handleVerifyCode = (): void => {
-    if (formData.verificationCode === serverCode) {
-      setIsEmailVerified(true);
-      alert("이메일 인증이 완료되었습니다!");
-    } else {
-      alert("인증번호가 올바르지 않습니다.");
+      }
+      setIsEmailSent(true);
+    } catch (error: any) {
+      console.error("인증번호 전송 실패:", error);
+      alert("인증번호 전송에 실패했습니다.");
     }
   };
 
-  // 회원가입 검증
+
+  const handleVerifyCode = async (): Promise<void> => {
+    try {
+      const response = await axios.post(
+        "https://api.leegunwoo.com/verification",
+        {
+          email: formData.email,
+          code : formData.verificationCode
+        },
+        {
+          headers: {
+            "Content-Type": "application/json",
+          },
+        }
+      );
+      const re = response.status;
+      console.log(response)
+      if (re && re === 200) {
+        console.log("인증 성공");
+        setisOk(true)
+        setIsEmailVerified(true)
+      }
+      setIsEmailSent(true);
+    } catch (error: any) {
+      console.error("인증 실패:", error);
+    }
+  };
+
+
   const validateForm = (): boolean => {
     if (!formData.name.trim() || !formData.birthDate) {
       alert("이름과 생년월일을 입력해주세요.");
@@ -152,7 +188,6 @@ export default function SignupForm({ onSubmit, onNext }: SignupFormProps) {
     console.log("이름:", formData.name);
     if (!validateForm()) return;
 
-  
 
   const payload = {
     email: formData.email,
@@ -161,14 +196,16 @@ export default function SignupForm({ onSubmit, onNext }: SignupFormProps) {
   };
 
   try {
-    const response = await axios.post("https://isedol.leegunwoo.com/users", payload, {
-      headers: {
-        "Content-Type": "application/json",
-      },
-    });
 
-    console.log("회원가입 성공:", response.data);
-    alert("회원가입이 완료되었습니다!");
+    const response = await axios.post("https://api.leegunwoo.com/users",
+      {
+        email: formData.email,
+        username: formData.name,
+        password: formData.password,
+      }
+    )
+
+    console.log(response.data)
 
     if (onSubmit) {
       onSubmit(formData, agreements);
@@ -238,7 +275,9 @@ export default function SignupForm({ onSubmit, onNext }: SignupFormProps) {
                 }
               />
               <VerifyButton type="button" onClick={handleVerifyCode}>
-                확인
+                {isOk ? (
+                  <p>인증완료</p>
+                ) : (<p>확인</p>)}
               </VerifyButton>
             </EmailVerifyBox>
           )}
