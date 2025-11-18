@@ -4,11 +4,69 @@ import styled from "@emotion/styled";
 import React from "react";
 import NavigationBar from "./navigaionbar";
 import { useRouter } from "next/navigation";
-
+import axios from "axios";
+import { useState,useEffect } from 'react';
 
 const Header = () => {
 
     const router = useRouter();
+    const [token, setToken] = useState<string | null>(null);
+        const [userInfo, setUserInfo] = useState(null);
+        const [loading, setLoading] = useState(false);
+        const [error, setError] = useState<string | null>(null);
+        const [usename,setusename] = useState("");
+
+
+    useEffect(() => {
+        const storedToken = localStorage.getItem("token");
+        setToken(storedToken);
+        console.log("토큰");
+        router.refresh();
+    }, []);
+
+    useEffect(() => {
+        if (!token) return;
+        console.log("토큰있음");
+        const fetchUserInfo = async () => {
+            setLoading(true);
+            setError(null);
+            
+            try {
+                const response = await axios.get(
+                    "https://api.leegunwoo.com/users/info",
+                    {
+                        headers: {
+                            "Authorization": `Bearer ${token}`
+                        },
+                    }
+                );
+                
+                setUserInfo(response.data);
+                setusename(response.data.username);
+                
+            } catch (error: any) {
+                console.error("사용자 정보 가져오기 실패:", error);
+                setError("사용자 정보를 가져오는데 실패했습니다.");
+            
+                if (error.response?.status === 401) {
+                    localStorage.removeItem("token");
+                    setToken(null);
+                }
+            } finally {
+                setLoading(false);
+            }
+        };
+
+        fetchUserInfo();
+    }, [token]);
+
+
+    const logout = () => {
+        setToken("");
+        setusename("");
+        setUserInfo(null);
+        localStorage.setItem("token","");
+    }
 
     return(
     <Headers>
@@ -19,11 +77,19 @@ const Header = () => {
         </LogoLayout>
 
         <InputLayout type="text" placeholder="상품명을 입력해주세요" />
+        {usename ? (
+            <LoginForm>
+            <p onClick={() => {logout()}}>로그아웃</p>
+            <p>{usename}</p>
+        </LoginForm>
 
-        <LoginForm>
+
+        ) :(
+         <LoginForm>
             <p onClick={() => {router.push('/signup')}}>회원가입</p>
             <p  onClick={() => {router.push('/login')}}>로그인</p>
         </LoginForm>
+        )}
 
         </HeaderItem>
     </HeaderLayout>

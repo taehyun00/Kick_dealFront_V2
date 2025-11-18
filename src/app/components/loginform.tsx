@@ -1,27 +1,40 @@
 'use client';
-
+import axios from "axios";
 import styled from "@emotion/styled";
 import { useState } from "react";
+import { useRouter } from "next/navigation";
 
 export default function LoginForm() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const router = useRouter();
+  const HanldleLogin = async (e: React.FormEvent<HTMLFormElement>): Promise<void> => {
+    e.preventDefault(); 
+   try {
+      const response = await axios.patch(
+        "https://api.leegunwoo.com/users",
+        {
+          email: email,
+          password : password
+        }
+      );
+      if (response.data.accessToken) {
+        console.log("로그인 성공");
+        localStorage.setItem("token",response.data.accessToken);
+        localStorage.setItem("refreshtoken",response.data.refreshToken);
+        localStorage.setItem("islogin","false ");
+        window.location.replace("/")
+      }
 
-  const handleSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
-
-    if (!email.trim() || !password.trim()) {
-      alert("이메일과 비밀번호를 입력해주세요.");
-      return;
+    } catch (error: any) {
+      console.error("인증 실패:", error);
     }
-
-    // 실제 로그인 API 연동 부분
-    console.log("로그인 시도:", { email, password });
-    alert("로그인 시도 중입니다...");
   };
 
+
+
   return (
-    <LoginContainer onSubmit={handleSubmit}>
+    <LoginContainer onSubmit={HanldleLogin}>
       <Title>로그인</Title>
 
       <FormSection>

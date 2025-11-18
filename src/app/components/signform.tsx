@@ -1,8 +1,9 @@
 'use client'
 
 import styled from "@emotion/styled";
-import { useState, ChangeEvent } from "react";
+import { useState } from "react";
 import axios from "axios";
+import { useRouter } from "next/navigation";
 
 interface FormData {
   name: string;
@@ -36,6 +37,8 @@ interface AgreementTextProps {
 }
 
 export default function SignupForm({ onSubmit, onNext }: SignupFormProps) {
+
+  const router = useRouter();
   const [formData, setFormData] = useState<FormData>({
     name: "",
     birthDate: "",
@@ -53,8 +56,7 @@ export default function SignupForm({ onSubmit, onNext }: SignupFormProps) {
   });
 
   const [isEmailSent, setIsEmailSent] = useState(false);
-  const [isEmailVerified, setIsEmailVerified] = useState(false);
-  const [serverCode, setServerCode] = useState(""); 
+  const [isEmailVerified, setIsEmailVerified] = useState(false); 
   const [isOk,setisOk] = useState(false);
 
 
@@ -115,7 +117,7 @@ export default function SignupForm({ onSubmit, onNext }: SignupFormProps) {
       const re = response.status;
       console.log(response)
       if (re && re === 200) {
-
+        alert("인증코드가 전송되었습니다.")
       }
       setIsEmailSent(true);
     } catch (error: any) {
@@ -127,16 +129,11 @@ export default function SignupForm({ onSubmit, onNext }: SignupFormProps) {
 
   const handleVerifyCode = async (): Promise<void> => {
     try {
-      const response = await axios.post(
+      const response = await axios.patch(
         "https://api.leegunwoo.com/verification",
         {
           email: formData.email,
           code : formData.verificationCode
-        },
-        {
-          headers: {
-            "Content-Type": "application/json",
-          },
         }
       );
       const re = response.status;
@@ -188,13 +185,6 @@ export default function SignupForm({ onSubmit, onNext }: SignupFormProps) {
     console.log("이름:", formData.name);
     if (!validateForm()) return;
 
-
-  const payload = {
-    email: formData.email,
-    username: formData.name,
-    password: formData.password,
-  };
-
   try {
 
     const response = await axios.post("https://api.leegunwoo.com/users",
@@ -209,6 +199,10 @@ export default function SignupForm({ onSubmit, onNext }: SignupFormProps) {
 
     if (onSubmit) {
       onSubmit(formData, agreements);
+    }
+
+    if(response.data){
+      router.replace("/");
     }
   } catch (error: any) {
     console.error("회원가입 실패:", error);
