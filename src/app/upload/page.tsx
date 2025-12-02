@@ -2,44 +2,76 @@
 
 import React, { useState, useRef } from 'react'
 import styled from '@emotion/styled'
+import axios from 'axios'
 
 const MAIN_COLOR = '#ff4757'
+const token = localStorage.getItem("token") || ""
 
 interface ProductRequest {
   name: string
   description: string
   price: string
   category: string
-  imageFile: File | null
 }
 
 const Save: React.FC = () => {
+  const [file, setFile] = useState<File | null>(null)
   const [form, setForm] = useState<ProductRequest>({
     name: '',
     description: '',
     price: '',
     category: '',
-    imageFile: null,
   })
   const [preview, setPreview] = useState<string>('')
   const imgInput = useRef<HTMLInputElement | null>(null)
 
-  /** 이미지 업로드 */
   const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0]
-    if (!file) return
-    setForm((prev) => ({ ...prev, imageFile: file }))
-    setPreview(URL.createObjectURL(file))
+    const selectedFile = e.target.files?.[0]
+    if (!selectedFile) return
+    
+    setFile(selectedFile)
+    setPreview(URL.createObjectURL(selectedFile))
   }
 
-  /** 업로드 버튼 클릭 */
-  const handleUpload = () => {
-    if (!form.imageFile || !form.name || !form.price || !form.description || !form.category) {
+  const handleUpload = async () => {
+    if (!form.name || !form.price || !form.description || !form.category) {
       alert('모든 필드를 입력해주세요!')
       return
     }
-    console.log('등록할 상품 데이터:', form)
-    alert('테스트용: 상품 데이터 콘솔에 출력됨 ✅')
+    
+    try {
+      const formData = new FormData()
+      
+      const productData = {
+        name: form.name,
+        description: form.description,
+        price: form.price,
+        category: form.category
+      }
+      const blob = new Blob([JSON.stringify(productData)], { type: "application/json" });
+      formData.append('product', blob)
+      
+      if (file) {
+        formData.append('image', file)
+      }
+      console.log(productData)
+      const response = await axios.post(
+        `https://api.leegunwoo.com/products`,
+        formData,
+        {
+        headers: {
+                    "Authorization": `Bearer ${token}`,
+                    "Content-Type": "multipart/form-data",
+                },
+        }
+
+      )
+      console.log(response)
+      alert('업로드 성공!')
+    } catch (error) {
+      console.error(error)
+      alert('업로드 실패!')
+    }
   }
 
   return (
@@ -47,7 +79,6 @@ const Save: React.FC = () => {
       <Title>글올리기</Title>
 
       <ContentWrapper>
-        {/* 왼쪽: 이미지 + 카테고리 */}
         <LeftSection>
           <ImageUploadBox>
             <label htmlFor="input_file">
@@ -74,13 +105,13 @@ const Save: React.FC = () => {
             <CategoryLabel>분류</CategoryLabel>
             <CategoryButtons>
               {[
-                ['soccerShoes', '축구화'],
-                ['futsalShoes', '풋살화'],
-                ['uniform', '유니폼'],
-                ['ball', '축구공'],
-                ['kids','유소년'],
-                ['other', '기타용품'],
-                ['goalkeeper', 'GK용품'],
+                ['SOCCER_SHOE', '축구화'],
+                ['FOOTBALL_SHOE', '풋살화'],
+                ['UNIFORM', '유니폼'],
+                ['SOCCER_BALL', '축구공'],
+                ['YOUTH','유소년'],
+                ['GITA', '기타용품'],
+                ['GOALKEEPER', 'GK용품'],
               ].map(([value, label]) => (
                 <CategoryButton
                   key={value}
@@ -132,7 +163,6 @@ const Save: React.FC = () => {
 }
 
 export default Save
-
 // ---------------- Styled Components ----------------
 
 const MainLayout = styled.div`

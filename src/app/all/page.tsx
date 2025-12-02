@@ -7,17 +7,19 @@ import axios from "axios";
 import { useEffect, useState } from "react";
 
 interface Product {
-    id: number;
-    name: string;
-    image : string;
-    price : number;
+category : string;
+description : string;
+id : number;
+name: string
+price: number;
+seller: string
+url: string;
 }
 
 
 export default function ProductList() {
 
   const router = useRouter();
-  const [s,sets] = useState([]);
 
 
 
@@ -45,20 +47,24 @@ export default function ProductList() {
         };
         
         GetAll();
+      
     }, []);
 
-  const product = s;
 
   return (
-    <MainLayout>
+        <MainLayout>
 
       
       <ContentWrapper>
-        <ProductGrid>
+        {products.length === 0 && !loading && !error ? (
+          <NoCardLayout>
+          <p>게시글이 없습니다.</p>
+          </NoCardLayout>
+        ) : (<ProductGrid>
           {products.map((product, index) => (
             <ProductCard key={index} onClick={() => {router.push(`${product.id}`)}}>
               <ProductImage>
-                <img src={product.image} alt={product.name} />
+                <img src={product.url} alt={product.name} />
               </ProductImage>
               <ProductInfo>
                 <ProductName>{product.name}</ProductName>
@@ -66,12 +72,19 @@ export default function ProductList() {
               </ProductInfo>
             </ProductCard>
           ))}
-        </ProductGrid>
+        </ProductGrid>)}
       </ContentWrapper>
     </MainLayout>
   );
 }
 
+const NoCardLayout = styled.div`
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  min-height: 100vh;
+`;
 const MainLayout = styled.div`
   width: 100vw;
   display: flex;
