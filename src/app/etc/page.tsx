@@ -1,24 +1,58 @@
 'use client'
 
 import styled from "@emotion/styled";
-import Header from "../components/header";
 import "../globals.css";
 import { useRouter } from "next/navigation";
+import axios from "axios";
+import { useEffect, useState } from "react";
+
+interface Product {
+    id: number;
+    name: string;
+    image : string;
+    price : number;
+}
+
 
 export default function ProductList() {
 
   const router = useRouter();
+  const [s,sets] = useState([]);
 
-  const products = Array(9).fill({
-    id: 1,
-    name: "골키퍼",
-    price: "390,000",
-    image: "svg/shop2.svg"
-  });
+
+
+    const [products, setProducts] = useState<Product[]>([]);
+    const [loading, setLoading] = useState<boolean>(false);
+    const [error, setError] = useState<string | null>(null);
+
+    
+    useEffect(() => {
+        const GetAll = async () => {
+            setLoading(true);
+            setError(null);
+            
+            try {
+                const response = await axios.get<Product[]>(
+                    `https://api.leegunwoo.com/products/categories?category=GITA`
+                );
+                setProducts(response.data);
+                console.log(response);
+            } catch (error: any) {
+                console.error("데이터 가져오기 실패:", error);
+                setError("상품 정보를 가져오는데 실패했습니다.");
+            } finally {
+                setLoading(false);
+            }
+        };
+        
+        GetAll();
+    }, []);
+
+  const product = s;
 
   return (
     <MainLayout>
-      <Header />
+
       
       <ContentWrapper>
         <ProductGrid>
