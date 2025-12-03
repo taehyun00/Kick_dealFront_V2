@@ -27,6 +27,7 @@ export default function LoginForm() {
       }
 
     } catch (error: any) {
+      alert("로그인 실패!")
       console.error("인증 실패:", error);
     }
   };

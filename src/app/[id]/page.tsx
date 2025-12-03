@@ -6,6 +6,7 @@ import { useRouter , useParams } from "next/navigation";
 import axios from "axios";
 import { useEffect, useState , use  } from "react";
 import Category from "@/utils/Category";
+import Routercategory from "@/utils/RouterCategory";
 
 interface Product {
     id: number;
@@ -14,11 +15,10 @@ interface Product {
     price : number;
     description : string;
     category : string;
+    seller : string
 }
 
-interface PageProps {
-  params: Promise<{ id: string }>;
-}
+
 
 
 export default  function ProductDetail() {
@@ -26,8 +26,9 @@ export default  function ProductDetail() {
   const params = useParams();
   const id = params.id;
 
-
-
+  const token = localStorage.getItem('token')
+  const username = localStorage.getItem("name") || "";
+  
 
     const [product, setProduct] = useState<Product>();
     const [loading, setLoading] = useState<boolean>(false);
@@ -60,8 +61,28 @@ export default  function ProductDetail() {
   
 
   const handleContact = () => {
-    // 연락하기 기능 구현
-    alert("연락하기 기능");
+    try {
+          const response =  axios.post<Product>(
+                    `https://api.leegunwoo.com/chatrooms/${id}`,
+                    {}, 
+                    {
+                    headers: {
+                      Authorization: `Bearer ${token}`,
+                    },
+                  }
+                );
+                console.log(response);
+            } catch (error: any) {
+                console.error("데이터 가져오기 실패:", error);
+                setError("상품 정보를 가져오는데 실패했습니다.");
+            } finally {
+                setLoading(false);
+            }
+  };
+
+
+  const handleModifity = () => {
+    router.push(`/update/${id}`);
   };
 
 
@@ -71,7 +92,7 @@ export default  function ProductDetail() {
       {product && 
       <ContentWrapper>
         <BreadcrumbNav>
-          <BreadcrumbText onClick={() => router.push('/all')}>
+          <BreadcrumbText onClick={() => router.push(`${Routercategory(product.category)}`)}>
             {Category(product.category)}
           </BreadcrumbText>
           <BreadcrumbSeparator>&gt;</BreadcrumbSeparator>
@@ -105,10 +126,15 @@ export default  function ProductDetail() {
                 ))}
               </DescriptionText>
             </ProductDescriptionSection>
-
-            <ContactButton onClick={handleContact}>
+            {username == product.seller ? (
+              <ContactButton onClick={handleModifity}>
+                수정하기
+              </ContactButton>
+            ) : (
+              <ContactButton onClick={handleContact}>
               연락하기
-            </ContactButton>
+              </ContactButton>
+            ) }
           </ProductInfoSection>
         </ProductDetailContainer>
       </ContentWrapper>

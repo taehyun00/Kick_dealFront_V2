@@ -42,6 +42,7 @@ const Header = () => {
                 
                 setUserInfo(response.data);
                 setusename(response.data.username);
+                localStorage.setItem("name", usename);
                 
             } catch (error: any) {
                 console.error("사용자 정보 가져오기 실패:", error);

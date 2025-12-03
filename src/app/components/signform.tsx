@@ -61,7 +61,6 @@ export default function SignupForm({ onSubmit, onNext }: SignupFormProps) {
 
 
   const handleInputChange = (field: keyof FormData, value: string): void => {
-      console.log(field, value); 
     setFormData(prev => ({
       ...prev,
       [field]: value
@@ -115,13 +114,11 @@ export default function SignupForm({ onSubmit, onNext }: SignupFormProps) {
         }
       );
       const re = response.status;
-      console.log(response)
       if (re && re === 200) {
         alert("인증코드가 전송되었습니다.")
       }
       setIsEmailSent(true);
     } catch (error: any) {
-      console.error("인증번호 전송 실패:", error);
       alert("인증번호 전송에 실패했습니다.");
     }
   };
@@ -129,7 +126,7 @@ export default function SignupForm({ onSubmit, onNext }: SignupFormProps) {
 
   const handleVerifyCode = async (): Promise<void> => {
     try {
-      const response = await axios.patch(
+      const response  = await axios.patch(
         "https://api.leegunwoo.com/verification",
         {
           email: formData.email,
@@ -180,9 +177,6 @@ export default function SignupForm({ onSubmit, onNext }: SignupFormProps) {
   };
 
   const handleSubmit = async (): Promise<void> => {
-    console.log("생년월일:", formData.birthDate);
-    console.log(formData.email,formData.name);
-    console.log("이름:", formData.name);
     if (!validateForm()) return;
 
   try {
@@ -195,7 +189,6 @@ export default function SignupForm({ onSubmit, onNext }: SignupFormProps) {
       }
     )
 
-    console.log(response.data)
 
     if (onSubmit) {
       onSubmit(formData, agreements);
