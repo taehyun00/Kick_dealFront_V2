@@ -15,18 +15,17 @@ const Header = () => {
         const [loading, setLoading] = useState(false);
         const [error, setError] = useState<string | null>(null);
         const [usename,setusename] = useState("");
+        const [serach,setserach] = useState("");
 
 
     useEffect(() => {
         const storedToken = localStorage.getItem("token");
         setToken(storedToken);
-        console.log("토큰");
         router.refresh();
     }, []);
 
     useEffect(() => {
         if (!token) return;
-        console.log("토큰있음");
         const fetchUserInfo = async () => {
             setLoading(true);
             setError(null);
@@ -76,7 +75,8 @@ const Header = () => {
             <Logo src="svg/logo.svg" width={55} onClick={() => router.push('/')}/>
         </LogoLayout>
 
-        <InputLayout type="text" placeholder="상품명을 입력해주세요" />
+        <InputLayout type="text" placeholder="상품명을 입력해주세요" onChange={e => {setserach(e.target.value)}} />
+        <Searchbutton onClick={() => {router.push(`/search?query=${serach}`)}}>검색</Searchbutton>
         {usename ? (
             <LoginForm>
             <p onClick={() => {logout()}}>로그아웃</p>
@@ -139,6 +139,17 @@ const HeaderItem = styled.div`
     align-items : center;
     justify-content : space-between;
 `
+
+const Searchbutton = styled.button`
+    border : none;
+    background-color : #ff4757;
+    cursor : pointer;
+    width : 6vw;
+    padding : 8px 0px;
+    height : 100%;
+    border-radius : 20px;
+    color : #FFFFFF;
+`   
 
 
 const HeaderLayout = styled.div`
