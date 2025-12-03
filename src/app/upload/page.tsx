@@ -3,6 +3,7 @@
 import React, { useState, useRef } from 'react'
 import styled from '@emotion/styled'
 import axios from 'axios'
+import { useRouter } from 'next/navigation'
 
 const MAIN_COLOR = '#ff4757'
 const token = localStorage.getItem("token") || ""
@@ -22,6 +23,7 @@ const Save: React.FC = () => {
     price: '',
     category: '',
   })
+  const router = useRouter();
   const [preview, setPreview] = useState<string>('')
   const imgInput = useRef<HTMLInputElement | null>(null)
 
@@ -68,6 +70,7 @@ const Save: React.FC = () => {
       )
       console.log(response)
       alert('업로드 성공!')
+      router.push('/all');
     } catch (error) {
       console.error(error)
       alert('업로드 실패!')

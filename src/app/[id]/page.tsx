@@ -1,56 +1,87 @@
 'use client'
 
 import styled from "@emotion/styled";
-import Header from "../components/header";
 import "../globals.css";
-import { useRouter, useParams } from "next/navigation";
+import { useRouter , useParams } from "next/navigation";
+import axios from "axios";
+import { useEffect, useState , use  } from "react";
+import Category from "@/utils/Category";
 
-export default function ProductDetail() {
+interface Product {
+    id: number;
+    name: string;
+    url : string;
+    price : number;
+    description : string;
+    category : string;
+}
+
+interface PageProps {
+  params: Promise<{ id: string }>;
+}
+
+
+export default  function ProductDetail() {
   const router = useRouter();
   const params = useParams();
+  const id = params.id;
 
-  // 실제로는 params.id를 사용해서 데이터를 가져올 것
-  const product = {
-    id: params.id,
-    name: "아디다스 튜닛 50",
-    price: "120,000",
-    image: "/svg/shop.svg",
-    description: `축구를 사랑하는 매니아로써 제심정 같아선 그냥 드리고 싶지만
-현찰 24만원에 일시불로 구입하여서
-그냥 드리기엔 너무 적자인거 같고 해서
-이렇게 건방지게 딱 반값 12 만원에 올리게 되었습니다.
 
-딱 두번 신었구요 .. 축구화 상태는 최상입니다.
-스터드 (일명 뽕)잔디용 풋살용 천연잔디용
-이렇게 3가지스터드와 스터드 쪼이는 것 까지 깔끔하게 준비되어있
-습니다.
 
-축구화상태는 제가보장하는데 정말 깨끗하구요 ..
-사이즈가 270 입니다.`
-  };
+
+    const [product, setProduct] = useState<Product>();
+    const [loading, setLoading] = useState<boolean>(false);
+    const [error, setError] = useState<string | null>(null);
+
+    
+    useEffect(() => {
+        const GetAll = async () => {
+            setLoading(true);
+            setError(null);
+            
+            try {
+                const response = await axios.get<Product>(
+                    `https://api.leegunwoo.com/products/${id}`
+                );
+                setProduct(response.data);
+                console.log(response);
+            } catch (error: any) {
+                console.error("데이터 가져오기 실패:", error);
+                setError("상품 정보를 가져오는데 실패했습니다.");
+            } finally {
+                setLoading(false);
+            }
+        };
+        
+        GetAll();
+    }, []);
+
+
+  
 
   const handleContact = () => {
     // 연락하기 기능 구현
     alert("연락하기 기능");
   };
 
+
+
   return (
     <MainLayout>
-
-      
+      {product && 
       <ContentWrapper>
         <BreadcrumbNav>
           <BreadcrumbText onClick={() => router.push('/all')}>
-            축구화
+            {Category(product.category)}
           </BreadcrumbText>
           <BreadcrumbSeparator>&gt;</BreadcrumbSeparator>
-          <BreadcrumbText>아디다스 튜닛50</BreadcrumbText>
+          <BreadcrumbText>{product.name}</BreadcrumbText>
         </BreadcrumbNav>
 
         <ProductDetailContainer>
           <ProductImageSection>
             <ProductMainImage>
-              <img src={product.image} alt={product.name} />
+              <img src={product.url} alt={product.name} />
             </ProductMainImage>
           </ProductImageSection>
 
@@ -81,6 +112,8 @@ export default function ProductDetail() {
           </ProductInfoSection>
         </ProductDetailContainer>
       </ContentWrapper>
+      }
+    
     </MainLayout>
   );
 }
