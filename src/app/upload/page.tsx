@@ -32,6 +32,7 @@ const Save: React.FC = () => {
     if (!selectedFile) return
     
     setFile(selectedFile)
+    console.log(selectedFile)
     setPreview(URL.createObjectURL(selectedFile))
   }
 
