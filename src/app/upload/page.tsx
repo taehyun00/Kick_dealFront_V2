@@ -6,7 +6,7 @@ import axios from 'axios'
 import { useRouter } from 'next/navigation'
 
 const MAIN_COLOR = '#ff4757'
-const token = localStorage.getItem("token") || ""
+const token = localStorage.getItem("access-token") || ""
 
 interface ProductRequest {
   name: string

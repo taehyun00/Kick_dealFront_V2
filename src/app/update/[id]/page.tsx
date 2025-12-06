@@ -97,7 +97,7 @@ const Update: React.FC = () => {
       return
     }
 
-    const token = localStorage.getItem('token')
+    const token = localStorage.getItem('access-token')
     if (!token) {
       alert('로그인이 필요합니다.')
       router.push('/login')
@@ -140,7 +140,7 @@ const Update: React.FC = () => {
 
       console.log('수정 성공:', response)
       alert('수정 완료!')
-      router.push(`/product/${id}`) // 상세 페이지로 이동
+      router.push(`/product/${id}`)
     } catch (error: any) {
       console.error('수정 실패:', error)
       alert(error.response?.data?.message || '수정에 실패했습니다.')

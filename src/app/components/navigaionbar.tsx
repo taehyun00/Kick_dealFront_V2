@@ -65,6 +65,12 @@ const NavigationBar = () => {
 
                 <Myact> 
                     <Category 
+                        onClick={() => {router.push("/chatlist")}}
+                        isActive={isActive("/chatlist")}
+                    >
+                    채팅
+                    </Category> 
+                    <Category 
                         onClick={() => {router.push("/upload")}}
                         isActive={isActive("/upload")}
                     >

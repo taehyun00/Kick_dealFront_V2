@@ -20,7 +20,7 @@ export default function LoginForm() {
       );
       if (response.data.accessToken) {
         console.log("로그인 성공");
-        localStorage.setItem("token",response.data.accessToken);
+        localStorage.setItem("access-token",response.data.accessToken);
         localStorage.setItem("refreshtoken",response.data.refreshToken);
         localStorage.setItem("islogin","false ");
         window.location.replace("/")

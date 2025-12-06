@@ -76,7 +76,7 @@ export default function ProductList() {
           </NoCardLayout>
         ) : (<ProductGrid>
           {products.map((product, index) => (
-            <ProductCard key={index} onClick={() => {router.push(`${product.id}`)}}>
+            <ProductCard key={index} onClick={() => {router.push(`/product/${product.id}`)}}>
               <ProductImage>
                 <img src={product.url} alt={product.name} />
               </ProductImage>

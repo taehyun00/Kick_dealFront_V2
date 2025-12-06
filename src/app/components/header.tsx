@@ -19,7 +19,7 @@ const Header = () => {
 
 
     useEffect(() => {
-        const storedToken = localStorage.getItem("token");
+        const storedToken = localStorage.getItem("access-token");
         setToken(storedToken);
         router.refresh();
     }, []);
@@ -42,14 +42,14 @@ const Header = () => {
                 
                 setUserInfo(response.data);
                 setusename(response.data.username);
-                localStorage.setItem("name", usename);
+                localStorage.setItem("name", response.data.username);
                 
             } catch (error: any) {
                 console.error("사용자 정보 가져오기 실패:", error);
                 setError("사용자 정보를 가져오는데 실패했습니다.");
             
                 if (error.response?.status === 401) {
-                    localStorage.removeItem("token");
+                    localStorage.removeItem("access-token");
                     setToken(null);
                 }
             } finally {
@@ -65,7 +65,7 @@ const Header = () => {
         setToken("");
         setusename("");
         setUserInfo(null);
-        localStorage.setItem("token","");
+        localStorage.setItem("access-token","");
     }
 
     return(

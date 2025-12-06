@@ -7,20 +7,16 @@ import { useRouter } from 'next/navigation'
 
 const MAIN_COLOR = '#ff4757'
 
-interface ChatRoom {
-  id: number
-  productId: number
-  productName: string
-  productImage: string
-  otherUserName: string
-  otherUserId: number
-  lastMessage: string
-  lastMessageTime: string
-  unreadCount: number
-}
+interface ProductResponse {
+    id: number;
+    buyer: string;
+    name: string;
+    productId : number;
+    seller : string
+  }
 
 const ChatList: React.FC = () => {
-  const [chatRooms, setChatRooms] = useState<ChatRoom[]>([])
+  const [chatRooms, setChatRooms] = useState<ProductResponse[]>([]);
   const [loading, setLoading] = useState(true)
   const router = useRouter()
 
@@ -29,7 +25,7 @@ const ChatList: React.FC = () => {
   }, [])
 
   const fetchChatRooms = async () => {
-    const token = localStorage.getItem('token')
+    const token = localStorage.getItem('access-token')
     if (!token) {
       alert('로그인이 필요합니다.')
       router.push('/login')
@@ -37,14 +33,16 @@ const ChatList: React.FC = () => {
     }
 
     try {
-      const response = await axios.get<ChatRoom[]>(
+      const response = await axios.get<[ProductResponse]>(
         'https://api.leegunwoo.com/chatrooms',
         {
           headers: {
             Authorization: `Bearer ${token}`,
           },
         }
+        
       )
+      console.log(response.data)
       setChatRooms(response.data)
     } catch (error) {
       console.error('채팅 목록 불러오기 실패:', error)
@@ -81,8 +79,7 @@ const ChatList: React.FC = () => {
       <Header>
         <Title>채팅</Title>
       </Header>
-
-      {chatRooms.length === 0 ? (
+      {chatRooms && chatRooms.length === 0 ? (
         <EmptyState>
           <EmptyIcon>💬</EmptyIcon>
           <EmptyText>아직 채팅 내역이 없습니다</EmptyText>
@@ -91,25 +88,20 @@ const ChatList: React.FC = () => {
         <ChatRoomList>
           {chatRooms.map((room) => (
             <ChatRoomItem
-              key={room.id}
-              onClick={() => router.push(`/chat/${room.id}`)}
+              key={room.id}  
+              onClick={() => {router.push(`/chatRoom/${room.id}`)}}
             >
-              <ProductImage src={room.productImage} alt={room.productName} />
-              <ChatInfo>
+               <ChatInfo>
                 <TopRow>
-                  <UserName>{room.otherUserName}</UserName>
-                  <TimeStamp>{formatTime(room.lastMessageTime)}</TimeStamp>
+                  <UserName>{room.name}</UserName>
                 </TopRow>
-                <ProductName>{room.productName}</ProductName>
-                <LastMessage>{room.lastMessage}</LastMessage>
+                <ProductName>작성자 : {room.seller}</ProductName>
               </ChatInfo>
-              {room.unreadCount > 0 && (
-                <UnreadBadge>{room.unreadCount}</UnreadBadge>
-              )}
             </ChatRoomItem>
           ))}
         </ChatRoomList>
       )}
+      
     </Container>
   )
 }
@@ -119,11 +111,10 @@ export default ChatList
 // Styled Components
 const Container = styled.div`
   width: 100%;
-  max-width: 800px;
-  margin: 0 auto;
   min-height: 100vh;
   background-color: #fff;
-  padding: 100px 20px 20px;
+  padding: 0px 100px 0px 100px;
+  margin-top : 100px;
 `
 
 const Header = styled.div`
@@ -157,14 +148,6 @@ const ChatRoomItem = styled.div`
   }
 `
 
-const ProductImage = styled.img`
-  width: 60px;
-  height: 60px;
-  border-radius: 12px;
-  object-fit: cover;
-  margin-right: 16px;
-  flex-shrink: 0;
-`
 
 const ChatInfo = styled.div`
   flex: 1;
@@ -203,22 +186,6 @@ const LastMessage = styled.span`
   text-overflow: ellipsis;
   white-space: nowrap;
 `
-
-const UnreadBadge = styled.div`
-  position: absolute;
-  right: 16px;
-  top: 50%;
-  transform: translateY(-50%);
-  background-color: ${MAIN_COLOR};
-  color: white;
-  border-radius: 12px;
-  padding: 4px 8px;
-  font-size: 12px;
-  font-weight: 600;
-  min-width: 20px;
-  text-align: center;
-`
-
 const LoadingText = styled.div`
   display: flex;
   align-items: center;

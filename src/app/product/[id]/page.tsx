@@ -1,7 +1,7 @@
 'use client'
 
 import styled from "@emotion/styled";
-import "../globals.css";
+import "@/app/globals.css";
 import { useRouter , useParams } from "next/navigation";
 import axios from "axios";
 import { useEffect, useState , use  } from "react";
@@ -19,14 +19,12 @@ interface Product {
 }
 
 
-
-
 export default  function ProductDetail() {
   const router = useRouter();
   const params = useParams();
   const id = params.id;
 
-  const token = localStorage.getItem('token')
+  const token = localStorage.getItem('access-token')
   const username = localStorage.getItem("name") || "";
   
 
@@ -55,7 +53,7 @@ export default  function ProductDetail() {
         };
         
         GetAll();
-    }, []);
+    }, [id]);
 
 
   

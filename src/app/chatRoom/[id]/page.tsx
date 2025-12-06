@@ -4,142 +4,208 @@ import React, { useState, useEffect, useRef } from 'react'
 import styled from '@emotion/styled'
 import axios from 'axios'
 import { useRouter, useParams } from 'next/navigation'
-import { useWebSocket } from '@/hooks/useWebSocket'
+import { useWebSocket } from '@/hooks/useWebsoket' // 철자 주의
 
 const MAIN_COLOR = '#ff4757'
 
 interface ChatRoomInfo {
   id: number
+  buyer: string
+  name: string
   productId: number
-  productName: string
-  productPrice: number
-  productImage: string
-  otherUserId: number
-  otherUserName: string
-  sellerId: number
+  seller: string
+  price: number
 }
+
+// useWebSocket의 Message 타입이 있다면 import 해서 사용하기 권장
+// import type { Message as ChatMessage } from '@/hooks/useWebsoket'
 
 const ChatRoom: React.FC = () => {
   const [newMessage, setNewMessage] = useState('')
   const [roomInfo, setRoomInfo] = useState<ChatRoomInfo | null>(null)
   const [currentUserId, setCurrentUserId] = useState<number | null>(null)
   const [loading, setLoading] = useState(true)
-  
+
   const messagesEndRef = useRef<HTMLDivElement>(null)
-  const typingTimeoutRef = useRef<NodeJS.Timeout>()
+  const typingTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null)
+
   const params = useParams()
   const roomId = params.id as string
   const router = useRouter()
 
-  // WebSocket Hook 사용
+  // ✅ 개선된 WebSocket Hook 사용
   const {
     messages,
     setMessages,
-    isConnected,
+    connectionState,          // 'idle' | 'connecting' | 'connected' | 'error'
     isTyping,
-    sendMessage: wsSendMessage,
+    connect,                  // () => Promise<void>
+    sendMessage: wsSendMessage, // (content: string) => Promise<boolean>
     sendTyping,
-    markAsRead,
   } = useWebSocket(roomId)
 
-  useEffect(() => {
-    fetchChatRoom()
-    fetchInitialMessages()
-  }, [roomId])
+  const isConnected = connectionState === 'connected'
 
+  // 디버깅용: messages가 바뀔 때마다 길이 찍어보기
   useEffect(() => {
-    scrollToBottom()
-    
-    // 새 메시지가 도착하면 읽음 처리
-    if (messages.length > 0) {
-      const lastMessage = messages[messages.length - 1]
-      if (lastMessage.senderId !== currentUserId && !lastMessage.isRead) {
-        markAsRead(lastMessage.id)
-      }
-    }
+    console.log('🖥 렌더링용 messages 변경:', messages.length, messages)
   }, [messages])
 
-  const fetchChatRoom = async () => {
-    const token = localStorage.getItem('token')
+  // ✅ 방 정보 + 초기 메시지 + WebSocket 연결 순서 제어
+  useEffect(() => {
+    let cancelled = false
+
+    const init = async () => {
+      try {
+        // 1) 방 정보 & 유저 정보
+        const token = localStorage.getItem('access-token')
+        if (!token) {
+          alert('로그인이 필요합니다.')
+          router.push('/login')
+          return
+        }
+
+        // 채팅방 정보
+        const roomRes = await axios.get<ChatRoomInfo>(
+          `https://api.leegunwoo.com/chatrooms/${roomId}`,
+          {
+            headers: { Authorization: `Bearer ${token}` },
+          }
+        )
+        if (cancelled) return
+        setRoomInfo(roomRes.data)
+
+        // 현재 사용자 정보
+        const userRes = await axios.get('https://api.leegunwoo.com/users/info', {
+          headers: { Authorization: `Bearer ${token}` },
+        })
+        if (cancelled) return
+        setCurrentUserId(userRes.data.id)
+
+        // 2) WebSocket 연결 보장 (블로그 글의 await 패턴)
+        try {
+          console.log('🌐 WebSocket 연결 시도...')
+          await connect()
+          if (cancelled) return
+          console.log('✅ WebSocket 연결 완료')
+        } catch (e) {
+          console.error('❌ WebSocket 연결 실패:', e)
+          // 연결 실패해도 채팅 목록은 보여줄 수 있으니, 계속 진행
+        }
+
+        // 3) 초기 메시지 불러오기
+        await fetchInitialMessages()
+      } catch (error) {
+        console.error('채팅방 초기화 실패:', error)
+        if (!cancelled) {
+          alert('채팅방 정보를 불러올 수 없습니다.')
+          router.back()
+        }
+      } finally {
+        if (!cancelled) {
+          setLoading(false)
+        }
+      }
+    }
+
+    init()
+
+    return () => {
+      cancelled = true
+      if (typingTimeoutRef.current) {
+        clearTimeout(typingTimeoutRef.current)
+      }
+    }
+    // roomId가 바뀌면 전체 재초기화
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [roomId])
+
+  // ✅ 초기 메시지 로딩 함수 (useEffect 안에서 사용)
+  const fetchInitialMessages = async () => {
+    const token = localStorage.getItem('access-token')
     if (!token) {
-      alert('로그인이 필요합니다.')
-      router.push('/login')
+      setMessages([])
       return
     }
 
     try {
-      const response = await axios.get<ChatRoomInfo>(
-        `https://api.leegunwoo.com/chats/${roomId}`,
+      const response = await axios.get(
+        `https://api.leegunwoo.com/${roomId}/messages`,
         {
           headers: {
             Authorization: `Bearer ${token}`,
           },
         }
       )
-      setRoomInfo(response.data)
-      
-      // 현재 사용자 ID 가져오기
-      const userResponse = await axios.get(
-        'https://api.leegunwoo.com/users/me',
-        {
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
-        }
-      )
-      setCurrentUserId(userResponse.data.id)
+
+      console.log('📥 초기 메시지:', response.data)
+
+      if (Array.isArray(response.data)) {
+        setMessages(response.data)
+      } else if (response.data.messages) {
+        setMessages(response.data.messages)
+      } else {
+        console.warn('⚠️ 예상치 못한 응답 구조:', response.data)
+        setMessages([])
+      }
     } catch (error) {
-      console.error('채팅방 정보 불러오기 실패:', error)
+      console.error('❌ 메시지 불러오기 실패:', error)
+      setMessages([])
     }
   }
 
-  const fetchInitialMessages = async () => {
-    const token = localStorage.getItem('token')
-    if (!token) return
+  // 메시지 변경 시 자동 스크롤
+  useEffect(() => {
+    scrollToBottom()
+  }, [messages])
+
+  // ✅ 전송 로직: 블로그 글 패턴처럼 “연결 보장 후 전송”을 훅이 처리
+  const handleSendMessage = async () => {
+    if (!newMessage.trim()) {
+      console.warn('⚠️ 빈 메시지')
+      return
+    }
 
     try {
-      const response = await axios.get(
-        `https://api.leegunwoo.com/chats/${roomId}/messages`,
-        {
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
+      const success = await wsSendMessage(newMessage)
+      if (success) {
+        setNewMessage('')
+        sendTyping(false)
+
+        if (typingTimeoutRef.current) {
+          clearTimeout(typingTimeoutRef.current)
+          typingTimeoutRef.current = null
         }
-      )
-      setMessages(response.data)
-    } catch (error) {
-      console.error('메시지 불러오기 실패:', error)
-    } finally {
-      setLoading(false)
+      } else {
+        alert('메시지 전송 실패. 연결을 확인해주세요.')
+      }
+    } catch (e) {
+      console.error('❌ 메시지 전송 중 에러:', e)
+      alert('메시지 전송 중 오류가 발생했습니다.')
     }
   }
 
-  const handleSendMessage = () => {
-    if (!newMessage.trim()) return
-
-    const success = wsSendMessage(newMessage)
-    
-    if (success) {
-      setNewMessage('')
-      sendTyping(false)
-    } else {
-      alert('메시지 전송 실패. 연결을 확인해주세요.')
-    }
-  }
-
+  // 입력 변경 시 타이핑 상태 전송
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    setNewMessage(e.target.value)
-    
-    // 타이핑 중 표시
-    sendTyping(true)
-    
-    // 3초 후 타이핑 중 해제
-    if (typingTimeoutRef.current) {
-      clearTimeout(typingTimeoutRef.current)
-    }
-    typingTimeoutRef.current = setTimeout(() => {
+    const value = e.target.value
+    setNewMessage(value)
+
+    if (value.trim()) {
+      sendTyping(true)
+
+      if (typingTimeoutRef.current) {
+        clearTimeout(typingTimeoutRef.current)
+      }
+      typingTimeoutRef.current = setTimeout(() => {
+        sendTyping(false)
+      }, 3000)
+    } else {
       sendTyping(false)
-    }, 3000)
+      if (typingTimeoutRef.current) {
+        clearTimeout(typingTimeoutRef.current)
+        typingTimeoutRef.current = null
+      }
+    }
   }
 
   const handleKeyPress = (e: React.KeyboardEvent) => {
@@ -164,17 +230,17 @@ const ChatRoom: React.FC = () => {
   const formatDate = (dateString: string) => {
     const date = new Date(dateString)
     const today = new Date()
-    
+
     if (date.toDateString() === today.toDateString()) {
       return '오늘'
     }
-    
+
     const yesterday = new Date(today)
     yesterday.setDate(yesterday.getDate() - 1)
     if (date.toDateString() === yesterday.toDateString()) {
       return '어제'
     }
-    
+
     return date.toLocaleDateString('ko-KR', {
       year: 'numeric',
       month: 'long',
@@ -182,10 +248,18 @@ const ChatRoom: React.FC = () => {
     })
   }
 
-  if (loading || !roomInfo) {
+  if (loading) {
     return (
       <Container>
         <LoadingText>로딩 중...</LoadingText>
+      </Container>
+    )
+  }
+
+  if (!roomInfo) {
+    return (
+      <Container>
+        <LoadingText>채팅방 정보를 불러올 수 없습니다.</LoadingText>
       </Container>
     )
   }
@@ -196,55 +270,57 @@ const ChatRoom: React.FC = () => {
         <BackButton onClick={() => router.back()}>←</BackButton>
         <HeaderInfo>
           <UserNameRow>
-            <UserName>{roomInfo.otherUserName}</UserName>
+            <UserName>{roomInfo.seller}</UserName>
             <ConnectionStatus isConnected={isConnected}>
-              {isConnected ? '●' : '○'}
+              {connectionState === 'connecting'
+                ? '○ 연결중'
+                : isConnected
+                ? '● 연결됨'
+                : '○ 끊김'}
             </ConnectionStatus>
           </UserNameRow>
           <ProductName onClick={() => router.push(`/product/${roomInfo.productId}`)}>
-            {roomInfo.productName}
+            {roomInfo.name}
           </ProductName>
         </HeaderInfo>
       </Header>
 
       <ProductCard onClick={() => router.push(`/product/${roomInfo.productId}`)}>
-        <ProductCardImage src={roomInfo.productImage} alt={roomInfo.productName} />
         <ProductCardInfo>
-          <ProductCardName>{roomInfo.productName}</ProductCardName>
-          <ProductCardPrice>{roomInfo.productPrice.toLocaleString()}원</ProductCardPrice>
+          <ProductCardName>{roomInfo.name}</ProductCardName>
+          <ProductCardPrice>{roomInfo.price.toLocaleString()}원</ProductCardPrice>
         </ProductCardInfo>
       </ProductCard>
 
       <MessagesContainer>
-        {messages.map((message, index) => {
-          const showDate =
-            index === 0 ||
-            new Date(messages[index - 1].createdAt).toDateString() !==
-              new Date(message.createdAt).toDateString()
+        {messages.length === 0 ? (
+          <EmptyMessage>메시지가 없습니다. 첫 메시지를 보내보세요!</EmptyMessage>
+        ) : (
+          messages.map((message, index) => {
+            const showDate =
+              index === 0 ||
+              new Date(messages[index - 1].timestamp).toDateString() !==
+                new Date(message.timestamp).toDateString()
 
-          const isMine = message.senderId === currentUserId
+            const isMine = message.senderId === currentUserId
 
-          return (
-            <React.Fragment key={message.id}>
-              {showDate && <DateDivider>{formatDate(message.createdAt)}</DateDivider>}
-              <MessageWrapper isMine={isMine}>
-                {!isMine && <SenderName>{message.senderName}</SenderName>}
-                <MessageBubble isMine={isMine}>
-                  <MessageContent isMine={isMine}>{message.content}</MessageContent>
-                  <MessageInfo>
-                    <MessageTime>{formatTime(message.createdAt)}</MessageTime>
-                    {isMine && (
-                      <ReadStatus isRead={message.isRead}>
-                        {message.isRead ? '읽음' : '안읽음'}
-                      </ReadStatus>
-                    )}
-                  </MessageInfo>
-                </MessageBubble>
-              </MessageWrapper>
-            </React.Fragment>
-          )
-        })}
-        
+            return (
+              <React.Fragment key={message.id}>
+                {showDate && <DateDivider>{formatDate(message.timestamp)}</DateDivider>}
+                <MessageWrapper isMine={isMine}>
+                  {!isMine && <SenderName>{message.senderName}</SenderName>}
+                  <MessageBubble isMine={isMine}>
+                    <MessageContent isMine={isMine}>{message.content}</MessageContent>
+                    <MessageInfo>
+                      <MessageTime>{formatTime(message.timestamp)}</MessageTime>
+                    </MessageInfo>
+                  </MessageBubble>
+                </MessageWrapper>
+              </React.Fragment>
+            )
+          })
+        )}
+
         {isTyping && (
           <TypingIndicator>
             <TypingDot delay={0} />
@@ -252,23 +328,33 @@ const ChatRoom: React.FC = () => {
             <TypingDot delay={0.4} />
           </TypingIndicator>
         )}
-        
+
         <div ref={messagesEndRef} />
       </MessagesContainer>
 
       <InputContainer>
         <MessageInput
-          placeholder="메시지를 입력하세요"
+          placeholder={
+            connectionState === 'connecting'
+              ? '연결 중...'
+              : isConnected
+              ? '메시지를 입력하세요'
+              : '연결이 끊어졌습니다'
+          }
           value={newMessage}
           onChange={handleInputChange}
           onKeyPress={handleKeyPress}
           disabled={!isConnected}
         />
-        <SendButton 
-          onClick={handleSendMessage} 
+        <SendButton
+          onClick={handleSendMessage}
           disabled={!newMessage.trim() || !isConnected}
         >
-          {isConnected ? '전송' : '연결중...'}
+          {connectionState === 'connecting'
+            ? '연결중'
+            : isConnected
+            ? '전송'
+            : '재연결 필요'}
         </SendButton>
       </InputContainer>
     </Container>
@@ -277,7 +363,15 @@ const ChatRoom: React.FC = () => {
 
 export default ChatRoom
 
-// Styled Components
+// ================= Styled Components 그대로 =================
+
+const EmptyMessage = styled.div`
+  text-align: center;
+  color: #999;
+  padding: 40px 20px;
+  font-size: 14px;
+`
+
 const Container = styled.div`
   width: 100%;
   max-width: 800px;
@@ -337,7 +431,7 @@ const ProductName = styled.span`
   font-size: 13px;
   color: #666;
   cursor: pointer;
-  
+
   &:hover {
     text-decoration: underline;
   }
@@ -355,14 +449,6 @@ const ProductCard = styled.div`
   &:hover {
     background-color: #f9f9f9;
   }
-`
-
-const ProductCardImage = styled.img`
-  width: 60px;
-  height: 60px;
-  border-radius: 8px;
-  object-fit: cover;
-  margin-right: 12px;
 `
 
 const ProductCardInfo = styled.div`
@@ -471,12 +557,6 @@ const MessageTime = styled.span`
   font-size: 11px;
   color: #999;
   white-space: nowrap;
-`
-
-const ReadStatus = styled.span<{ isRead: boolean }>`
-  font-size: 10px;
-  color: ${({ isRead }) => (isRead ? '#4CAF50' : '#FF9800')};
-  font-weight: 600;
 `
 
 const TypingIndicator = styled.div`
