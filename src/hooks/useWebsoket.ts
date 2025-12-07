@@ -3,12 +3,12 @@ import { Client, IMessage, StompSubscription } from '@stomp/stompjs'
 
 export interface Message {
   id: number
-  roomId: number
-  senderId: number
-  senderName: string
   content: string
-  type: string
+  sender: {
+    username: string
+  }
   timestamp: string
+  senderName : string
 }
 
 interface SendMessagePayload {
@@ -72,6 +72,7 @@ export const useWebSocket = (rawRoomId: string | string[]) => {
     clearConnectPromise()
     setConnectionState('idle')
   }, [])
+
 
   /** 블로그 글처럼: “연결 완료를 await할 수 있는 connect” */
   const connect = useCallback(async (): Promise<void> => {

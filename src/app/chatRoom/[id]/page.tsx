@@ -23,7 +23,7 @@ interface ChatRoomInfo {
 const ChatRoom: React.FC = () => {
   const [newMessage, setNewMessage] = useState('')
   const [roomInfo, setRoomInfo] = useState<ChatRoomInfo | null>(null)
-  const [currentUserId, setCurrentUserId] = useState<number | null>(null)
+  const [currentUserId, setCurrentUserId] = useState<string | null>(null)
   const [loading, setLoading] = useState(true)
 
   const messagesEndRef = useRef<HTMLDivElement>(null)
@@ -79,8 +79,9 @@ const ChatRoom: React.FC = () => {
         const userRes = await axios.get('https://api.leegunwoo.com/users/info', {
           headers: { Authorization: `Bearer ${token}` },
         })
+        console.log('현재 사용자 정보:', userRes.data.username)
         if (cancelled) return
-        setCurrentUserId(userRes.data.id)
+        setCurrentUserId(userRes.data.username)
 
         // 2) WebSocket 연결 보장 (블로그 글의 await 패턴)
         try {
@@ -301,14 +302,17 @@ const ChatRoom: React.FC = () => {
               index === 0 ||
               new Date(messages[index - 1].timestamp).toDateString() !==
                 new Date(message.timestamp).toDateString()
+           
 
-            const isMine = message.senderId === currentUserId
+            const senderUsername = message.sender?.username || message.senderName || '알 수 없음'
+            const isMine = senderUsername === currentUserId
 
+            console.log(isMine, message.senderName, currentUserId)
             return (
               <React.Fragment key={message.id}>
                 {showDate && <DateDivider>{formatDate(message.timestamp)}</DateDivider>}
                 <MessageWrapper isMine={isMine}>
-                  {!isMine && <SenderName>{message.senderName}</SenderName>}
+                  {!isMine && <SenderName>{message.sender.username}</SenderName>}
                   <MessageBubble isMine={isMine}>
                     <MessageContent isMine={isMine}>{message.content}</MessageContent>
                     <MessageInfo>
@@ -379,7 +383,7 @@ const Container = styled.div`
   height: 100vh;
   display: flex;
   flex-direction: column;
-  background-color: #f5f5f5;
+  background-color: #ffffffff;
 `
 
 const Header = styled.div`
@@ -389,8 +393,9 @@ const Header = styled.div`
   background-color: #fff;
   border-bottom: 1px solid #eee;
   position: sticky;
-  top: 0;
+  top: 20px;
   z-index: 10;
+  margin-top: 120px;
 `
 
 const BackButton = styled.button`
