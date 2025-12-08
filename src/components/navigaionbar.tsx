@@ -82,7 +82,7 @@ const NavigationBar = ({point} : Navi ) => {
                         글올리기
                     </Category>
 
-                    <Point>POINT : {point}</Point>
+                    <Point onClick={() => {router.push("/points")}}>POINT : {point}</Point>
 
                 </Myact>
             </Navitgationbars>
