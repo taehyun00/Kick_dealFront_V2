@@ -7,35 +7,40 @@ import axios from "axios";
 import { useEffect, useState } from "react";
 
 interface Product {
-    id: number;
-    name: string;
-    url : string;
-    price : number;
+category : string;
+description : string;
+id : number;
+name: string
+price: number;
+seller: string
+url: string;
 }
 
 
 export default function ProductList() {
 
   const router = useRouter();
-  const [s,sets] = useState([]);
 
 
 
     const [products, setProducts] = useState<Product[]>([]);
     const [loading, setLoading] = useState<boolean>(false);
     const [error, setError] = useState<string | null>(null);
+    const [page, setPage] = useState<number>(0);
+    const [totalpage, settotalPage] = useState<number>(0);
 
-    
     useEffect(() => {
         const GetAll = async () => {
             setLoading(true);
             setError(null);
             
             try {
-                const response = await axios.get<Product[]>(
+                const response = await axios.get(
                     `https://api.leegunwoo.com/products/categories?category=UNIFORM`
                 );
-                setProducts(response.data);
+                setProducts(response.data.content);
+                settotalPage(response.data.totalPages);
+
                 console.log(response);
             } catch (error: any) {
                 console.error("데이터 가져오기 실패:", error);
@@ -46,12 +51,22 @@ export default function ProductList() {
         };
         
         GetAll();
-    }, []);
+      
+    }, [page]);
 
-  const product = s;
+    const pagenumbers = () => {
+
+      const reslut = [];
+      for (let i = 0; i < totalpage; i++) {
+        reslut.push(<PageButton key={i} onClick={() => setPage(i)}>{i+1}</PageButton>)
+      }
+
+      return reslut;
+    }
+
 
   return (
-    <MainLayout>
+        <MainLayout>
 
       
       <ContentWrapper>
@@ -61,7 +76,7 @@ export default function ProductList() {
           </NoCardLayout>
         ) : (<ProductGrid>
           {products.map((product, index) => (
-            <ProductCard key={index} onClick={() => {router.push(`${product.id}`)}}>
+            <ProductCard key={index} onClick={() => {router.push(`/product/${product.id}`)}}>
               <ProductImage>
                 <img src={product.url} alt={product.name} />
               </ProductImage>
@@ -73,6 +88,10 @@ export default function ProductList() {
           ))}
         </ProductGrid>)}
       </ContentWrapper>
+
+      <PageSection>
+        {pagenumbers()}
+      </PageSection>
     </MainLayout>
   );
 }
@@ -84,7 +103,6 @@ const NoCardLayout = styled.div`
   align-items: center;
   min-height: 100vh;
 `;
-
 const MainLayout = styled.div`
   width: 100vw;
   display: flex;
@@ -168,4 +186,25 @@ const ProductPrice = styled.p`
   font-family: 'GMarketSans';
 `;
 
+const PageSection = styled.div`
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 8px;
+  margin: 10px 0;
+`;
 
+const PageButton = styled.button`
+  padding: 8px 12px;
+  border: none;
+  border-radius: 4px;
+  background-color: #ffffffff;
+  color: #333333;
+  cursor: pointer;
+  font-size: 14px;
+
+  &:hover {
+    background-color: #555555;
+    color: #ffffff;
+  }
+`;
