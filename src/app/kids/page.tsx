@@ -36,7 +36,7 @@ export default function ProductList() {
             
             try {
                 const response = await axios.get(
-                    `https://api.leegunwoo.com/products/categories?category=YOUTH`
+                    `https://api.leegunwoo.com/products/categories?category=YOUTH&page=${page}`
                 );
                 setProducts(response.data.content);
                 settotalPage(response.data.totalPages);
