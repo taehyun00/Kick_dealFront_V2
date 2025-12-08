@@ -1,33 +1,108 @@
 'use client'
-import styled from "@emotion/styled";
+
+import { useEffect, useState } from 'react'
+import styled from '@emotion/styled'
+import axios from 'axios'
+import { useRouter  } from "next/navigation";
+
+interface Product {
+  id: number
+  name: string
+  description: string
+  category: string
+  price: number
+  seller: string
+  status: 'ON_SALE' | 'SOLD' | 'BOUGHT' | string
+  url: string
+}
+
+interface ProductPage {
+  content: Product[]
+}
 
 const Mypage = () => {
+  const [myProducts, setMyProducts] = useState<Product[]>([])
+  const [buyProducts, setBuyProducts] = useState<Product[]>([])
+  const [loading, setLoading] = useState(true)
+  const router = useRouter()
 
-  const products = Array.from({length:9}).map((_, i) => ({
-    id: i + 1,
-    name: "아디다스 튜닛 50",
-    price: "120,000",
-    image: "/svg/shop1.svg" // <-- public 폴더에서 불러올 경우 앞에 '/' 필요
-  }));
+  useEffect(() => {
+    const fetchProducts = async () => {
+      try {
+        const token = localStorage.getItem('access-token')
+        if (!token) {
+          console.warn('토큰 없음')
+          setLoading(false)
+          return
+        }
 
-  return(
+        // ✅ 내가 관여한 모든 상품 한번에 조회
+        const res = await axios.get<ProductPage>(
+          'https://api.leegunwoo.com/products/my',
+          {
+            headers: {
+              Authorization: `Bearer ${token}`,
+            },
+          }
+        )
+
+        console.log('마이페이지 응답:', res.data)
+
+        // res.data.content 는 Product[] (없으면 빈 배열)
+        const all = res.data.content ?? []
+
+        // ✅ status 기준 분류
+        const mine = all.filter((p) => p.status === 'ON_SALE')
+        const bought = all.filter(
+          (p) => p.status === 'BOUGHT' || p.status === 'SOLD'
+        )
+
+        setMyProducts(mine)
+        setBuyProducts(bought)
+      } catch (e) {
+        console.error('마이페이지 상품 불러오기 실패:', e)
+        setMyProducts([])
+        setBuyProducts([])
+      } finally {
+        setLoading(false)
+      }
+    }
+
+    fetchProducts()
+  }, [])
+
+  if (loading) {
+    return (
+      <PageLayout>
+        <TitleBox>
+          <Title>로딩 중...</Title>
+        </TitleBox>
+      </PageLayout>
+    )
+  }
+
+  return (
     <PageLayout>
       <TitleBox>
         <Title>내가 올린 글</Title>
       </TitleBox>
 
       <ProductGrid>
-        {products.map((product) => (
-          <ProductCard key={product.id} onClick={() => {}}>
-            <ProductImage>
-              <img src={product.image} alt={product.name} />
-            </ProductImage>
-            <ProductInfo>
-              <ProductName>{product.name}</ProductName>
-              <ProductPrice>{product.price}</ProductPrice>
-            </ProductInfo>
-          </ProductCard>
-        ))}
+        {myProducts.length === 0 ? (
+          <EmptyText>올린 글이 없습니다.</EmptyText>
+        ) : (
+          myProducts.map((product) => (
+            <ProductCard key={product.id} onClick={() => {router.push(`product/${product.id}`)}}>
+              <ProductImage>
+                <img src={product.url} alt={product.name} />
+              </ProductImage>
+              <ProductInfo>
+                <ProductName>{product.name}</ProductName>
+                <ProductPrice>{product.price.toLocaleString()}원</ProductPrice>
+              </ProductInfo>
+            </ProductCard>
+          ))
+        )}
       </ProductGrid>
 
       <TitleBox>
@@ -35,23 +110,27 @@ const Mypage = () => {
       </TitleBox>
 
       <ProductGrid>
-        {products.map((product) => (
-          <ProductCard key={product.id} onClick={() => {}}>
-            <ProductImage>
-              <img src={product.image} alt={product.name} />
-            </ProductImage>
-            <ProductInfo>
-              <ProductName>{product.name}</ProductName>
-              <ProductPrice>{product.price}</ProductPrice>
-            </ProductInfo>
-          </ProductCard>
-        ))}
+        {buyProducts.length === 0 ? (
+          <EmptyText>구매한 글이 없습니다.</EmptyText>
+        ) : (
+          buyProducts.map((product) => (
+            <ProductCard key={product.id} onClick={() => {router.push(`product/${product.id}`)}}>
+              <ProductImage>
+                <img src={product.url} alt={product.name} />
+              </ProductImage>
+              <ProductInfo>
+                <ProductName>{product.name}</ProductName>
+                <ProductPrice>{product.price.toLocaleString()}원</ProductPrice>
+              </ProductInfo>
+            </ProductCard>
+          ))
+        )}
       </ProductGrid>
     </PageLayout>
   )
 }
 
-export default Mypage;
+export default Mypage
 
 /* ---------- styled components ---------- */
 
@@ -62,70 +141,71 @@ const PageLayout = styled.div`
   align-items: center;
   min-height: 100vh;
   background-color: #ffffff;
-`;
+`
 
 const Title = styled.h1`
   font-size: 24px;
   font-weight: 700;
   color: #444;
-  margin-top : 100px;
-`;
+  margin-top: 100px;
+`
 
 const TitleBox = styled.div`
-  width : 100%;
-  padding : 100px;
-`;
+  width: 100%;
+  padding: 100px;
+`
 
 const ProductGrid = styled.div`
   display: flex;
   flex-direction: row;
   gap: 16px;
   width: 100%;
-
   padding: 0px 100px 0px 100px;
-  overflow-x: scroll;            
-  -webkit-overflow-scrolling: touch; 
-  scrollbar-width: thin;  
+  overflow-x: scroll;
+  -webkit-overflow-scrolling: touch;
+  scrollbar-width: thin;
+`
 
-`;
+const EmptyText = styled.div`
+  padding: 20px 0;
+  color: #999;
+  font-size: 14px;
+`
 
-/* 카드가 축소되지 않도록 flex: 0 0 auto 또는 고정/최소 너비 부여 */
 const ProductCard = styled.div`
   background: white;
   border-radius: 12px;
   overflow: hidden;
   cursor: pointer;
   transition: transform 0.1s ease;
-  flex: 0 0 220px;      /* <-- 카드 고정 너비(또는 min-width 사용) */
+  flex: 0 0 220px;
 
-  
   &:hover {
     transform: translateY(-4px);
   }
-`;
+`
 
-/* 이미지 영역: 너비는 카드에 맞추고 높이는 고정, 이미지가 잘라지게 cover */
 const ProductImage = styled.div`
   width: 100%;
   height: 160px;
   overflow: hidden;
   background-color: #ffffff;
-  
+
   img {
-    display: block;      /* 이미지 주변 여백 제거 */
+    display: block;
     width: 100%;
     height: 100%;
-    object-fit: cover;   /* 이미지 비율 유지하며 잘라서 채움 */
+    object-fit: cover;
     border-radius: 12px 12px 0 0;
   }
-`;
+`
 
 const ProductInfo = styled.div`
   padding: 12px;
   display: flex;
   flex-direction: column;
   gap: 4px;
-`;
+`
 
 const ProductName = styled.h3`
   font-size: 16px;
@@ -134,7 +214,7 @@ const ProductName = styled.h3`
   margin: 0;
   line-height: 1.3;
   font-family: 'GMarketSans';
-`;
+`
 
 const ProductPrice = styled.p`
   font-size: 14px;
@@ -143,4 +223,4 @@ const ProductPrice = styled.p`
   margin: 0;
   line-height: 1.2;
   font-family: 'GMarketSans';
-`;
+`

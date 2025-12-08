@@ -81,7 +81,7 @@ const Header = () => {
         {usename ? (
             <LoginForm>
             <p onClick={() => {logout()}}>로그아웃</p>
-            <p>{usename}</p>
+            <p onClick={() => {router.push('/admin')}}>{usename}</p>
         </LoginForm>
 
 
