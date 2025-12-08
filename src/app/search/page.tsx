@@ -29,6 +29,8 @@ export default function ProductList({ searchParams }: SearchPageProps) {
   const [products, setProducts] = useState<Product[]>([]);
   const [loading, setLoading] = useState<boolean>(false);
   const [error, setError] = useState<string | null>(null);
+  const [page, setPage] = useState<number>(0);
+  const [totalpage, settotalPage] = useState<number>(0);
 
   useEffect(() => {
     const GetAll = async () => {
@@ -36,10 +38,11 @@ export default function ProductList({ searchParams }: SearchPageProps) {
       setError(null);
 
       try {
-        const response = await axios.get<Product[]>(
-          "https://api.leegunwoo.com/products"
+        const response = await axios.get(
+          `https://api.leegunwoo.com/products/query?query=${query}&page=${page}`
         );
-        setProducts(response.data);
+          setProducts(response.data.content);
+          settotalPage(response.data.totalPages);
         console.log(response);
       } catch (error: any) {
         console.error("데이터 가져오기 실패:", error);
@@ -50,12 +53,19 @@ export default function ProductList({ searchParams }: SearchPageProps) {
     };
 
     GetAll();
-  }, []);
+  }, [page]);
 
-  // 필터링된 상품 목록
-  const filteredProducts = products.filter((product) =>
-    product.name.includes(query),
-  );
+
+  const pagenumbers = () => {
+
+      const reslut = [];
+      for (let i = 0; i < totalpage; i++) {
+        reslut.push(<PageButton key={i} onClick={() => setPage(i)}>{i+1}</PageButton>)
+      }
+
+      return reslut;
+    }
+
 
   return (
     <MainLayout>
@@ -66,16 +76,16 @@ export default function ProductList({ searchParams }: SearchPageProps) {
         {error && <p style={{ color: "red" }}>{error}</p>}
 
 
-        {!loading && !error && filteredProducts.length === 0 && (
+        {!loading && !error && products.length === 0 && (
           <NoCardLayout>
             <p>게시글이 없습니다.</p>
           </NoCardLayout>
         )}
 
 
-        {!loading && !error && filteredProducts.length > 0 && (
+        {!loading && !error && products.length > 0 && (
           <ProductGrid>
-            {filteredProducts.map((product) => (
+            {products.map((product) => (
               <ProductCard
                 key={product.id} 
                 onClick={() => {
@@ -94,6 +104,12 @@ export default function ProductList({ searchParams }: SearchPageProps) {
           </ProductGrid>
         )}
       </ContentWrapper>
+
+
+      <PageSection>
+        {pagenumbers()}
+      </PageSection>
+
     </MainLayout>
   );
 }
@@ -189,4 +205,26 @@ const ProductPrice = styled.p`
   font-family: 'GMarketSans';
 `;
 
+const PageButton = styled.button`
+  padding: 8px 12px;
+  border: none;
+  border-radius: 4px;
+  background-color: #ffffffff;
+  color: #333333;
+  cursor: pointer;
+  font-size: 14px;
 
+  &:hover {
+    background-color: #555555;
+    color: #ffffff;
+  }
+`;
+
+
+const PageSection = styled.div`
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 8px;
+  margin: 10px 0;
+`;
