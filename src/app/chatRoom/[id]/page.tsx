@@ -4,7 +4,7 @@ import React, { useState, useEffect, useRef } from 'react'
 import styled from '@emotion/styled'
 import axios from 'axios'
 import { useRouter, useParams } from 'next/navigation'
-import { useWebSocket } from '@/hooks/useWebsoket' // 철자 주의
+import { useWebSocket } from '@/hooks/useWebsoket'
 
 const MAIN_COLOR = '#ff4757'
 
@@ -17,14 +17,12 @@ interface ChatRoomInfo {
   price: number
 }
 
-// useWebSocket의 Message 타입이 있다면 import 해서 사용하기 권장
-// import type { Message as ChatMessage } from '@/hooks/useWebsoket'
-
 const ChatRoom: React.FC = () => {
   const [newMessage, setNewMessage] = useState('')
   const [roomInfo, setRoomInfo] = useState<ChatRoomInfo | null>(null)
   const [currentUserId, setCurrentUserId] = useState<string | null>(null)
   const [loading, setLoading] = useState(true)
+  const [isTypingMine, setIsTypingMine] = useState(false)
 
   const messagesEndRef = useRef<HTMLDivElement>(null)
   const typingTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null)
@@ -33,31 +31,23 @@ const ChatRoom: React.FC = () => {
   const roomId = params.id as string
   const router = useRouter()
 
-  // ✅ 개선된 WebSocket Hook 사용
   const {
     messages,
     setMessages,
-    connectionState,          // 'idle' | 'connecting' | 'connected' | 'error'
+    connectionState,
     isTyping,
-    connect,                  // () => Promise<void>
-    sendMessage: wsSendMessage, // (content: string) => Promise<boolean>
+    connect,
+    sendMessage: wsSendMessage,
     sendTyping,
   } = useWebSocket(roomId)
 
   const isConnected = connectionState === 'connected'
 
-  // 디버깅용: messages가 바뀔 때마다 길이 찍어보기
-  useEffect(() => {
-    console.log('🖥 렌더링용 messages 변경:', messages.length, messages)
-  }, [messages])
-
-  // ✅ 방 정보 + 초기 메시지 + WebSocket 연결 순서 제어
   useEffect(() => {
     let cancelled = false
 
     const init = async () => {
       try {
-        // 1) 방 정보 & 유저 정보
         const token = localStorage.getItem('access-token')
         if (!token) {
           alert('로그인이 필요합니다.')
@@ -65,7 +55,6 @@ const ChatRoom: React.FC = () => {
           return
         }
 
-        // 채팅방 정보
         const roomRes = await axios.get<ChatRoomInfo>(
           `https://api.leegunwoo.com/chatrooms/${roomId}`,
           {
@@ -75,26 +64,19 @@ const ChatRoom: React.FC = () => {
         if (cancelled) return
         setRoomInfo(roomRes.data)
 
-        // 현재 사용자 정보
         const userRes = await axios.get('https://api.leegunwoo.com/users/info', {
           headers: { Authorization: `Bearer ${token}` },
         })
-        console.log('현재 사용자 정보:', userRes.data.username)
         if (cancelled) return
         setCurrentUserId(userRes.data.username)
 
-        // 2) WebSocket 연결 보장 (블로그 글의 await 패턴)
         try {
-          console.log('🌐 WebSocket 연결 시도...')
           await connect()
           if (cancelled) return
-          console.log('✅ WebSocket 연결 완료')
         } catch (e) {
-          console.error('❌ WebSocket 연결 실패:', e)
-          // 연결 실패해도 채팅 목록은 보여줄 수 있으니, 계속 진행
+          console.error('WebSocket 연결 실패:', e)
         }
 
-        // 3) 초기 메시지 불러오기
         await fetchInitialMessages()
       } catch (error) {
         console.error('채팅방 초기화 실패:', error)
@@ -117,11 +99,8 @@ const ChatRoom: React.FC = () => {
         clearTimeout(typingTimeoutRef.current)
       }
     }
-    // roomId가 바뀌면 전체 재초기화
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [roomId])
+  }, [roomId, connect, router])
 
-  // ✅ 초기 메시지 로딩 함수 (useEffect 안에서 사용)
   const fetchInitialMessages = async () => {
     const token = localStorage.getItem('access-token')
     if (!token) {
@@ -139,39 +118,32 @@ const ChatRoom: React.FC = () => {
         }
       )
 
-      console.log('📥 초기 메시지:', response.data)
-
       if (Array.isArray(response.data)) {
         setMessages(response.data)
       } else if (response.data.messages) {
         setMessages(response.data.messages)
       } else {
-        console.warn('⚠️ 예상치 못한 응답 구조:', response.data)
         setMessages([])
       }
     } catch (error) {
-      console.error('❌ 메시지 불러오기 실패:', error)
+      console.error('메시지 불러오기 실패:', error)
       setMessages([])
     }
   }
 
-  // 메시지 변경 시 자동 스크롤
   useEffect(() => {
     scrollToBottom()
   }, [messages])
 
-  // ✅ 전송 로직: 블로그 글 패턴처럼 “연결 보장 후 전송”을 훅이 처리
   const handleSendMessage = async () => {
-    if (!newMessage.trim()) {
-      console.warn('⚠️ 빈 메시지')
-      return
-    }
+    if (!newMessage.trim()) return
 
     try {
       const success = await wsSendMessage(newMessage)
       if (success) {
         setNewMessage('')
         sendTyping(false)
+        setIsTypingMine(false)
 
         if (typingTimeoutRef.current) {
           clearTimeout(typingTimeoutRef.current)
@@ -181,17 +153,19 @@ const ChatRoom: React.FC = () => {
         alert('메시지 전송 실패. 연결을 확인해주세요.')
       }
     } catch (e) {
-      console.error('❌ 메시지 전송 중 에러:', e)
+      console.error('메시지 전송 중 에러:', e)
       alert('메시지 전송 중 오류가 발생했습니다.')
     }
   }
 
-  // 입력 변경 시 타이핑 상태 전송
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const value = e.target.value
     setNewMessage(value)
 
-    if (value.trim()) {
+    const mineNow = !!value.trim()
+    setIsTypingMine(mineNow)
+
+    if (mineNow) {
       sendTyping(true)
 
       if (typingTimeoutRef.current) {
@@ -199,9 +173,11 @@ const ChatRoom: React.FC = () => {
       }
       typingTimeoutRef.current = setTimeout(() => {
         sendTyping(false)
+        setIsTypingMine(false)
       }, 3000)
     } else {
       sendTyping(false)
+      setIsTypingMine(false)
       if (typingTimeoutRef.current) {
         clearTimeout(typingTimeoutRef.current)
         typingTimeoutRef.current = null
@@ -302,17 +278,20 @@ const ChatRoom: React.FC = () => {
               index === 0 ||
               new Date(messages[index - 1].timestamp).toDateString() !==
                 new Date(message.timestamp).toDateString()
-           
 
-            const senderUsername = message.sender?.username || message.senderName || '알 수 없음'
+            const senderUsername =
+              message.sender?.username || message.senderName || '알 수 없음'
             const isMine = senderUsername === currentUserId
 
-            console.log(isMine, message.senderName, currentUserId)
             return (
               <React.Fragment key={message.id}>
                 {showDate && <DateDivider>{formatDate(message.timestamp)}</DateDivider>}
                 <MessageWrapper isMine={isMine}>
-                  {!isMine && <SenderName>{message.sender.username}</SenderName>}
+                  {!isMine && (
+                    <SenderName>
+                      {message.sender?.username ?? message.senderName ?? '알 수 없음'}
+                    </SenderName>
+                  )}
                   <MessageBubble isMine={isMine}>
                     <MessageContent isMine={isMine}>{message.content}</MessageContent>
                     <MessageInfo>
@@ -324,7 +303,7 @@ const ChatRoom: React.FC = () => {
             )
           })
         )}
-
+        <TypeingBox isMine={isTypingMine} >
         {isTyping && (
           <TypingIndicator>
             <TypingDot delay={0} />
@@ -332,7 +311,7 @@ const ChatRoom: React.FC = () => {
             <TypingDot delay={0.4} />
           </TypingIndicator>
         )}
-
+        </TypeingBox>
         <div ref={messagesEndRef} />
       </MessagesContainer>
 
@@ -366,8 +345,6 @@ const ChatRoom: React.FC = () => {
 }
 
 export default ChatRoom
-
-// ================= Styled Components 그대로 =================
 
 const EmptyMessage = styled.div`
   text-align: center;
@@ -475,7 +452,6 @@ const ProductCardPrice = styled.span`
 `
 
 const MessagesContainer = styled.div`
-  flex: 1;
   overflow-y: auto;
   padding: 20px;
   display: flex;
@@ -575,6 +551,13 @@ const TypingIndicator = styled.div`
   box-shadow: 0 1px 2px rgba(0, 0, 0, 0.1);
 `
 
+const TypeingBox = styled.div<{ isMine: boolean }>`
+  width : 100%;
+  display : flex;
+  justify-content: ${({ isMine }) => (isMine ? 'flex-end' : 'flex-start')};
+
+`
+
 const TypingDot = styled.div<{ delay: number }>`
   width: 8px;
   height: 8px;
@@ -584,7 +567,9 @@ const TypingDot = styled.div<{ delay: number }>`
   animation-delay: ${({ delay }) => delay}s;
 
   @keyframes typing {
-    0%, 60%, 100% {
+    0%,
+    60%,
+    100% {
       transform: translateY(0);
       opacity: 0.7;
     }
