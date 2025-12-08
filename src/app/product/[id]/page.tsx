@@ -7,6 +7,7 @@ import axios from "axios";
 import { useEffect, useState , use  } from "react";
 import Category from "@/utils/Category";
 import Routercategory from "@/utils/RouterCategory";
+import Report from "@/components/modal/report";
 
 interface Product {
     id: number;
@@ -31,6 +32,7 @@ export default  function ProductDetail() {
     const [product, setProduct] = useState<Product>();
     const [loading, setLoading] = useState<boolean>(false);
     const [error, setError] = useState<string | null>(null);
+    const [isopen,setisopen] = useState(false);
 
     
     useEffect(() => {
@@ -55,7 +57,9 @@ export default  function ProductDetail() {
         GetAll();
     }, [id]);
 
-
+  const handleReport = () => {
+    setisopen(true);
+  }
   
 
   const handleContact = () => {
@@ -136,7 +140,7 @@ export default  function ProductDetail() {
               <>
               </>
             ) : (
-              <ReportButton onClick={handleContact}>
+              <ReportButton onClick={handleReport}>
               신고하기
               </ReportButton>
             ) }
@@ -144,6 +148,11 @@ export default  function ProductDetail() {
         </ProductDetailContainer>
       </ContentWrapper>
       }
+
+      {isopen && 
+        <Report id={`${id}`} isopen={isopen} setisopen={setisopen} type="product" />
+      }
+
     
     </MainLayout>
   );

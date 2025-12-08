@@ -5,6 +5,7 @@ import styled from '@emotion/styled'
 import axios from 'axios'
 import { useRouter, useParams } from 'next/navigation'
 import { useWebSocket } from '@/hooks/useWebsoket'
+import Report from '@/components/modal/report'
 
 const MAIN_COLOR = '#ff4757'
 
@@ -23,6 +24,8 @@ const ChatRoom: React.FC = () => {
   const [currentUserId, setCurrentUserId] = useState<string | null>(null)
   const [loading, setLoading] = useState(true)
   const [isTypingMine, setIsTypingMine] = useState(false)
+  const [isopen,setisopen] = useState(false);
+  const [reportedMessageId, setReportedMessageId] = useState<number | null>(null)
 
   const messagesEndRef = useRef<HTMLDivElement>(null)
   const typingTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null)
@@ -289,9 +292,15 @@ const ChatRoom: React.FC = () => {
               <React.Fragment key={message.id}>
                 <MessageWrapper isMine={isMine}>
                   {!isMine && (
+                    <Info>
                     <SenderName>
                       {message.sender ?? message.senderName ?? '알 수 없음'}
                     </SenderName>
+                    <ReportText onClick={() => {
+                      setReportedMessageId(message.id)
+                      setisopen(true)}}>신고하기</ReportText>
+                    </Info>
+                    
                   )}
                   <MessageBubble isMine={isMine}>
                     <MessageContent isMine={isMine}>{message.content}</MessageContent>
@@ -338,6 +347,12 @@ const ChatRoom: React.FC = () => {
             : '재연결 필요'}
         </SendButton>
       </InputContainer>
+
+
+      {isopen && 
+        <Report id={`${reportedMessageId}`} isopen={isopen} setisopen={setisopen} type="messages" />
+      }
+
     </Container>
   )
 }
@@ -359,6 +374,20 @@ const Container = styled.div`
   display: flex;
   flex-direction: column;
   background-color: #ffffffff;
+`
+
+const Info = styled.div`
+  display : flex;
+  flex-direction : row;
+  align-items: center;
+  justify-content : center;
+  gap : 12px;
+
+`
+
+const ReportText = styled.p`
+  font-size : 0.7vw;
+  cursor : pointer;
 `
 
 const Header = styled.div`
