@@ -1,7 +1,12 @@
 import styled from "@emotion/styled"
 import { useRouter, usePathname } from "next/navigation";
 
-const NavigationBar = () => {
+type Navi = {
+    point : number;
+} 
+
+
+const NavigationBar = ({point} : Navi ) => {
     const router = useRouter();
     const pathname = usePathname();
 
@@ -76,12 +81,9 @@ const NavigationBar = () => {
                     >
                         글올리기
                     </Category>
-                    <Category 
-                        onClick={() => {router.push("/mypage")}}
-                        isActive={isActive("/mypage")}
-                    >
-                        마이페이지
-                    </Category>   
+
+                    <Point>POINT : {point}</Point>
+
                 </Myact>
             </Navitgationbars>
         </NavigationBarLayout>
@@ -100,6 +102,18 @@ const Category = styled.p<{isActive : boolean}>`
     color : ${props => props.isActive ? '#ff4757;' : '#BBBBBB'};
     cursor : pointer;
     font-weight : ${props => props.isActive ? '600' : '400'};
+    transition: color 0.2s ease;
+    
+    &:hover {
+        color: #888888;
+    }
+`
+
+const Point = styled.p`
+    font-size : 17px;
+    color : #BBBBBB;
+    cursor : pointer;
+    font-weight : '400';
     transition: color 0.2s ease;
     
     &:hover {

@@ -1,8 +1,8 @@
 'use client'
 
 import styled from "@emotion/styled";
-import Header from "../components/header";
-import LoginForm from "../components/loginform";
+import Header from "../../components/header";
+import LoginForm from "../../components/loginform";
 import "../globals.css";
 
 export default function Main() {

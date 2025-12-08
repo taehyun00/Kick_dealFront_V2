@@ -120,8 +120,10 @@ const ChatRoom: React.FC = () => {
 
       if (Array.isArray(response.data)) {
         setMessages(response.data)
+  
       } else if (response.data.messages) {
         setMessages(response.data.messages)
+ 
       } else {
         setMessages([])
       }
@@ -276,27 +278,23 @@ const ChatRoom: React.FC = () => {
           messages.map((message, index) => {
             const showDate =
               index === 0 ||
-              new Date(messages[index - 1].timestamp).toDateString() !==
-                new Date(message.timestamp).toDateString()
+              new Date(messages[index - 1].timeStamp).toDateString() !==
+                new Date(message.timeStamp).toDateString()
 
             const senderUsername =
-              message.sender?.username || message.senderName || '알 수 없음'
+              message.sender || message.senderName || '알 수 없음'
             const isMine = senderUsername === currentUserId
 
             return (
               <React.Fragment key={message.id}>
-                {showDate && <DateDivider>{formatDate(message.timestamp)}</DateDivider>}
                 <MessageWrapper isMine={isMine}>
                   {!isMine && (
                     <SenderName>
-                      {message.sender?.username ?? message.senderName ?? '알 수 없음'}
+                      {message.sender ?? message.senderName ?? '알 수 없음'}
                     </SenderName>
                   )}
                   <MessageBubble isMine={isMine}>
                     <MessageContent isMine={isMine}>{message.content}</MessageContent>
-                    <MessageInfo>
-                      <MessageTime>{formatTime(message.timestamp)}</MessageTime>
-                    </MessageInfo>
                   </MessageBubble>
                 </MessageWrapper>
               </React.Fragment>

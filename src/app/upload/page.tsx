@@ -32,7 +32,7 @@ const Save: React.FC = () => {
     if (!selectedFile) return
     
     setFile(selectedFile)
-    console.log(selectedFile)
+
     setPreview(URL.createObjectURL(selectedFile))
   }
 
@@ -57,7 +57,6 @@ const Save: React.FC = () => {
       if (file) {
         formData.append('image', file)
       }
-      console.log(productData)
       const response = await axios.post(
         `https://api.leegunwoo.com/products`,
         formData,
@@ -69,7 +68,7 @@ const Save: React.FC = () => {
         }
 
       )
-      console.log(response)
+
       alert('업로드 성공!')
       router.push('/all');
     } catch (error) {

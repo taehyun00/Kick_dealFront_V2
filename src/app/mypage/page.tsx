@@ -46,7 +46,7 @@ const Mypage = () => {
           }
         )
 
-        console.log('마이페이지 응답:', res.data)
+
 
         // res.data.content 는 Product[] (없으면 빈 배열)
         const all = res.data.content ?? []

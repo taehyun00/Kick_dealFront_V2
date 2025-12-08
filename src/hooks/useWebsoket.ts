@@ -4,10 +4,8 @@ import { Client, IMessage, StompSubscription } from '@stomp/stompjs'
 export interface Message {
   id: number
   content: string
-  sender: {
-    username: string
-  }
-  timestamp: string
+  sender: string
+  timeStamp: string
   senderName : string
 }
 
@@ -108,11 +106,11 @@ export const useWebSocket = (rawRoomId: string | string[]) => {
       reconnectDelay: 0, // 여기선 자동 재연결은 잠시 끔 (직접 제어하기 쉽게)
 
       debug: (str) => {
-        console.log('🔧 STOMP:', str)
+
       },
 
       onConnect: (frame) => {
-        console.log('✅ STOMP CONNECT 성공:', frame.headers)
+
         setConnectionState('connected')
 
         // 구독 설정
@@ -148,7 +146,7 @@ export const useWebSocket = (rawRoomId: string | string[]) => {
       },
 
       onWebSocketClose: (event) => {
-        console.log('🔌 WebSocket Close:', event)
+        
         setConnectionState('idle')
       },
 
@@ -163,7 +161,7 @@ export const useWebSocket = (rawRoomId: string | string[]) => {
       },
 
       onDisconnect: () => {
-        console.log('🔌 STOMP Disconnect')
+
         setConnectionState('idle')
       },
     })
@@ -184,7 +182,7 @@ export const useWebSocket = (rawRoomId: string | string[]) => {
       try {
         await connect()
         if (cancelled) return
-        console.log('초기 WebSocket 연결 완료')
+
       } catch (e) {
         if (cancelled) return
         console.error('초기 WebSocket 연결 실패:', e)

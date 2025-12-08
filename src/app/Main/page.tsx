@@ -9,7 +9,7 @@ export default function Main() {
   const router = useRouter();
 
   const handleLoginClick = () => {
-    router.push("/login");
+    router.push("/all");
   };
 
   return (
@@ -31,7 +31,7 @@ export default function Main() {
             </DownText>
           </TextItem>
 
-          <LoginButton onClick={() => {handleLoginClick()}}>로그인하기</LoginButton>
+          <LoginButton onClick={() => {handleLoginClick()}}>사용하러가기</LoginButton>
         </RightItem>
       </MainItem>
     </MainLayout>

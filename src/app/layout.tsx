@@ -1,9 +1,9 @@
 'use client'
 
 import { useState, useEffect } from 'react';
-import Blank from "./components/blank";
+import Blank from "../components/blank";
 import "../app/globals.css";
-import Header from "@/app/components/header";
+import Header from "@/components/header";
 
 export default function RootLayout({
   children,

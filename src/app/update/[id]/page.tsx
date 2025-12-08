@@ -70,7 +70,7 @@ const Update: React.FC = () => {
           setPreview(productData.url)
         }
         
-        console.log('상품 데이터:', response.data)
+   
       } catch (error: any) {
         console.error('데이터 가져오기 실패:', error)
         setError('상품 정보를 가져오는데 실패했습니다.')
@@ -124,7 +124,7 @@ const Update: React.FC = () => {
         formData.append('image', file)
       }
 
-      console.log('수정 데이터:', productData)
+ 
 
       // PUT 또는 PATCH 메서드로 수정 요청
       const response = await axios.patch(
@@ -138,7 +138,7 @@ const Update: React.FC = () => {
         }
       )
 
-      console.log('수정 성공:', response)
+      
       alert('수정 완료!')
       router.push(`/product/${id}`)
     } catch (error: any) {

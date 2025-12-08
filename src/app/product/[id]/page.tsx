@@ -43,7 +43,7 @@ export default  function ProductDetail() {
                     `https://api.leegunwoo.com/products/${id}`
                 );
                 setProduct(response.data);
-                console.log(response);
+
             } catch (error: any) {
                 console.error("데이터 가져오기 실패:", error);
                 setError("상품 정보를 가져오는데 실패했습니다.");
@@ -68,8 +68,7 @@ export default  function ProductDetail() {
                       Authorization: `Bearer ${token}`,
                     },
                   }
-                );
-                console.log(response);
+                ) 
             } catch (error: any) {
                 console.error("데이터 가져오기 실패:", error);
                 setError("상품 정보를 가져오는데 실패했습니다.");
@@ -132,6 +131,14 @@ export default  function ProductDetail() {
               <ContactButton onClick={handleContact}>
               연락하기
               </ContactButton>
+            ) }
+            {username == product.seller ? (
+              <>
+              </>
+            ) : (
+              <ReportButton onClick={handleContact}>
+              신고하기
+              </ReportButton>
             ) }
           </ProductInfoSection>
         </ProductDetailContainer>
@@ -339,4 +346,21 @@ const ContactButton = styled.button`
     height: 48px;
     font-size: 15px;
   }
+`;
+
+
+const ReportButton = styled.button`
+  width: 100%;
+  height: 50px;
+  background-color: #ffffffff;
+  color: #ff4757;
+  border: 1px solid #ff4757;
+  border-radius: 8px;
+  font-size: 16px;
+  font-weight: 600;
+  font-family: 'GMarketSans';
+  cursor: pointer;
+  transition: all 0.2s ease;
+  margin-top: 20px;
+
 `;

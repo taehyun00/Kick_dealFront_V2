@@ -42,7 +42,7 @@ const ChatList: React.FC = () => {
         }
         
       )
-      console.log(response.data)
+
       setChatRooms(response.data)
     } catch (error) {
       console.error('채팅 목록 불러오기 실패:', error)
@@ -114,13 +114,13 @@ const Container = styled.div`
   min-height: 100vh;
   background-color: #fff;
   padding: 0px 100px 0px 100px;
-  margin-top : 100px;
+  margin-top : 140px;
 `
 
 const Header = styled.div`
   padding: 20px 0;
   border-bottom: 1px solid #eee;
-  margin-bottom: 20px;
+  margin-bottom: 0px;
 `
 
 const Title = styled.h1`

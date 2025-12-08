@@ -134,9 +134,9 @@ export default function SignupForm({ onSubmit, onNext }: SignupFormProps) {
         }
       );
       const re = response.status;
-      console.log(response)
+
       if (re && re === 200) {
-        console.log("인증 성공");
+
         setisOk(true)
         setIsEmailVerified(true)
       }

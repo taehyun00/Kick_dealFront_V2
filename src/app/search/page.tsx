@@ -43,7 +43,7 @@ export default function ProductList({ searchParams }: SearchPageProps) {
         );
           setProducts(response.data.content);
           settotalPage(response.data.totalPages);
-        console.log(response);
+
       } catch (error: any) {
         console.error("데이터 가져오기 실패:", error);
         setError("상품 정보를 가져오는데 실패했습니다.");

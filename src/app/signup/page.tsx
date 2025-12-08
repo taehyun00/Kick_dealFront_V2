@@ -1,7 +1,7 @@
 'use client'
 
 import styled from "@emotion/styled";
-import SignupForm from "../components/signform";
+import SignupForm from "../../components/signform";
 import "../globals.css";
 
 export default function Main() {

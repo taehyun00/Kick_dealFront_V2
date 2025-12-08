@@ -7,6 +7,8 @@ import { useRouter } from "next/navigation";
 import axios from "axios";
 import { useState,useEffect } from 'react';
 
+
+
 const Header = () => {
 
     const router = useRouter();
@@ -15,6 +17,7 @@ const Header = () => {
         const [loading, setLoading] = useState(false);
         const [error, setError] = useState<string | null>(null);
         const [usename,setusename] = useState("");
+        const [points,setpoints] = useState(0);
         const [serach,setserach] = useState("");
 
 
@@ -42,6 +45,7 @@ const Header = () => {
                 
                 setUserInfo(response.data);
                 setusename(response.data.username);
+                setpoints(response.data.point);
                 localStorage.setItem("name", response.data.username);
                 
             } catch (error: any) {
@@ -81,7 +85,7 @@ const Header = () => {
         {usename ? (
             <LoginForm>
             <p onClick={() => {logout()}}>로그아웃</p>
-            <p onClick={() => {router.push('/admin')}}>{usename}</p>
+            <p onClick={() => {router.push('/mypage')}}>{usename}</p>
         </LoginForm>
 
 
@@ -94,7 +98,7 @@ const Header = () => {
 
         </HeaderItem>
     </HeaderLayout>
-    <NavigationBar />
+    <NavigationBar point={points} />
     </Headers>
     )
 
